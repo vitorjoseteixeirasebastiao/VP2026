@@ -1,0 +1,5 @@
+body { font-family: Arial; margin:10px; }
+input, button { width:100%; padding:10px; margin-bottom:5px; font-size:16px; }
+button { border:none; background:#007bff; color:white; border-radius:5px; cursor:pointer; }
+button:hover { background:#0056b3; }
+#mensagens { min-height:25px; margin-top:5px; color:#333; font-weight:bold; }
