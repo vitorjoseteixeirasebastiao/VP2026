@@ -3,42 +3,44 @@ import { getFirestore, collection, addDoc } from "https://www.gstatic.com/fireba
 
 // Config Firebase
 const firebaseConfig = {
-
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
-
   authDomain: "vpm2026-8167b.firebaseapp.com",
-
   projectId: "vpm2026-8167b",
-
   storageBucket: "vpm2026-8167b.firebasestorage.app",
-
   messagingSenderId: "129557498750",
-
   appId: "1:129557498750:web:c2a510c04946583a17412f"
-
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Função para mostrar mensagens temporárias
 function mostrarMensagem(texto){
   const div = document.getElementById("mensagens");
   div.innerText = texto;
   setTimeout(()=>{ div.innerText=""; },4000);
 }
 
+// Função para salvar a vaga no Firebase
 async function salvarVaga(){
   const numero = document.getElementById("numero").value;
-  if(!numero){ mostrarMensagem("Digite o número do local"); return; }
+  if(!numero){ 
+    mostrarMensagem("Digite o número do local"); 
+    return; 
+  }
 
   mostrarMensagem("Buscando localização...");
-  if(!navigator.geolocation){ mostrarMensagem("GPS não disponível"); return; }
+  if(!navigator.geolocation){ 
+    mostrarMensagem("GPS não disponível"); 
+    return; 
+  }
 
   navigator.geolocation.getCurrentPosition(async (pos)=>{
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
 
     try{
+      // 🔹 Salva no Firebase Firestore 🔹
       await addDoc(collection(db, "teste"), {
         numero,
         latitude: lat,
@@ -55,8 +57,11 @@ async function salvarVaga(){
     }
 
   },
-  (err)=>{ mostrarMensagem("Erro GPS: "+err.message); },
+  (err)=>{
+    mostrarMensagem("Erro GPS: "+err.message);
+  },
   { enableHighAccuracy:true });
 }
 
-document.getElementById("btnSalvar").addEventListener("click", salvarLocal);
+// Corrigido: agora o botão chama a função correta
+document.getElementById("btnSalvar").addEventListener("click", salvarVaga);
