@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // ===== Config Firebase =====
 const firebaseConfig = {
@@ -98,10 +100,16 @@ async function salvarVaga(){
 const map = L.map("map").setView([-23.5505,-46.6333],13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
 
+// ===== Ícones e marcadores =====
 const iconeMoto = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png", iconSize:[35,35], iconAnchor:[17,35] });
-const iconeUsuario = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/64/64113.png", iconSize:[30,30], iconAnchor:[15,30] });
 
-const marcadorUsuario = L.marker([0,0],{icon:iconeUsuario}).addTo(map);
+// Marcador do usuário como círculo azul
+const marcadorUsuario = L.circleMarker([0,0], {
+  radius: 12,
+  color: '#007bff',
+  fillColor: '#007bff',
+  fillOpacity: 0.6
+}).addTo(map);
 
 // Atualiza posição do usuário em tempo real
 if(navigator.geolocation){
@@ -114,7 +122,7 @@ if(navigator.geolocation){
 }
 
 // ===== Atualização em tempo real das vagas =====
-const markersVagas = {}; // Armazena marcadores já adicionados
+const markersVagas = {};
 const vagasRef = collection(db,"teste");
 
 onSnapshot(vagasRef, snapshot=>{
