@@ -118,7 +118,7 @@ async function salvarVaga(){
 
 document.getElementById("btnSalvar").addEventListener("click", salvarVaga);
 
-// ===== Atualização em tempo real das vagas =====
+// ===== Atualização em tempo real das vagas com link para Waze =====
 const markersVagas = {};
 onSnapshot(collection(db,"teste"), snapshot=>{
   snapshot.docChanges().forEach(change=>{
@@ -127,14 +127,18 @@ onSnapshot(collection(db,"teste"), snapshot=>{
 
     if(markersVagas[id]) return; // já existe
 
+    const urlWaze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
+
     if(d.status === "validado"){
       markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
         .addTo(map)
-        .bindPopup(`<p>Número: ${d.numero}</p>`);
+        .bindPopup(`<p>Número: ${d.numero}</p>
+                    <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
     } else {
       markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconePendente})
         .addTo(map)
-        .bindPopup(`<p>Número: ${d.numero} (pendente)</p>`);
+        .bindPopup(`<p>Número: ${d.numero} (pendente)</p>
+                    <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
     }
   });
 });
