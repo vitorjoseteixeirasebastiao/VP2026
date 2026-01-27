@@ -3,12 +3,19 @@ import { getFirestore, collection, addDoc } from "https://www.gstatic.com/fireba
 
 // Config Firebase
 const firebaseConfig = {
+
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
+
   authDomain: "vpm2026-8167b.firebaseapp.com",
+
   projectId: "vpm2026-8167b",
+
   storageBucket: "vpm2026-8167b.firebasestorage.app",
+
   messagingSenderId: "129557498750",
+
   appId: "1:129557498750:web:c2a510c04946583a17412f"
+
 };
 
 const app = initializeApp(firebaseConfig);
