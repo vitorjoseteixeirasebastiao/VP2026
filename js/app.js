@@ -14,14 +14,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Função para mostrar mensagens temporárias
+// Mostrar mensagens temporárias
 function mostrarMensagem(texto){
   const div = document.getElementById("mensagens");
   div.innerText = texto;
   setTimeout(()=>{ div.innerText=""; },4000);
 }
 
-// Função para calcular distância entre dois pontos (em metros)
+// Calcula distância entre dois pontos (em metros)
 function calcularDistancia(lat1, lon1, lat2, lon2){
   const R = 6371e3;
   const φ1 = lat1*Math.PI/180;
@@ -33,7 +33,7 @@ function calcularDistancia(lat1, lon1, lat2, lon2){
   return R*c;
 }
 
-// Função para salvar a vaga
+// Função salvar vaga
 async function salvarVaga(){
   const numero = document.getElementById("numero").value;
   if(!numero){ mostrarMensagem("Digite o número do local"); return; }
@@ -49,7 +49,6 @@ async function salvarVaga(){
       const snapshot = await getDocs(collection(db,"teste"));
       let encontrouProximo = false;
 
-      // Verifica vagas pendentes próximas
       for(const docSnap of snapshot.docs){
         const d = docSnap.data();
         if(d.status === "pendente"){
@@ -72,7 +71,6 @@ async function salvarVaga(){
         }
       }
 
-      // Se não encontrou vaga próxima, cria nova
       if(!encontrouProximo){
         await addDoc(collection(db,"teste"), {
           numero,
@@ -86,6 +84,9 @@ async function salvarVaga(){
       }
 
       document.getElementById("numero").value = "";
+
+      // Atualiza mapa após salvar
+      atualizarMapa();
 
     }catch(err){
       mostrarMensagem("Erro Firebase: "+err.message);
@@ -101,11 +102,14 @@ async function salvarVaga(){
 const map = L.map("map").setView([-23.5505,-46.6333],13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
 
+// Ícones
 const iconeMoto = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png", iconSize:[35,35], iconAnchor:[17,35] });
 const iconeUsuario = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/64/64113.png", iconSize:[30,30], iconAnchor:[15,30] });
+
+// Marcador do usuário
 const marcadorUsuario = L.marker([0,0],{icon:iconeUsuario}).addTo(map);
 
-// Atualiza posição do usuário em tempo real
+// Atualiza posição do usuário
 if(navigator.geolocation){
   navigator.geolocation.watchPosition((pos)=>{
     const lat = pos.coords.latitude;
@@ -115,8 +119,13 @@ if(navigator.geolocation){
   }, (err)=>{ console.log("Erro GPS:", err.message); }, { enableHighAccuracy:true, maximumAge:1000 });
 }
 
-// Mostra vagas validadas no mapa
+// Atualiza mapa com vagas validadas
 async function atualizarMapa(){
+  // Limpa todos os marcadores de vagas antes de atualizar
+  map.eachLayer(layer=>{
+    if(layer.options && layer.options.icon === iconeMoto) map.removeLayer(layer);
+  });
+
   const snapshot = await getDocs(collection(db,"teste"));
   snapshot.docs.forEach(docSnap=>{
     const d = docSnap.data();
@@ -132,5 +141,5 @@ async function atualizarMapa(){
 setInterval(atualizarMapa,5000);
 atualizarMapa();
 
-// Evento botão
+// Botão salvar
 document.getElementById("btnSalvar").addEventListener("click", salvarVaga);
