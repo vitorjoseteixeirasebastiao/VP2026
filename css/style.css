@@ -1,11 +1,68 @@
-body { font-family: Arial; margin:10px; }
-input, button { width:100%; padding:10px; margin-bottom:5px; font-size:16px; }
-button { border:none; background:#007bff; color:white; border-radius:5px; cursor:pointer; }
-button:hover { background:#0056b3; }
-#mensagens { min-height:25px; margin-top:5px; color:#333; font-weight:bold;}
+/* Corpo e fundo */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 10px;
+  background: #f5f5f5;
+  font-size: 18px; /* fonte maior para celular */
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* Input e botão lado a lado */
+#form-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+input#numero {
+  flex: 1;
+  padding: 12px;
+  font-size: 18px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input#numero:focus {
+  border-color: #007bff;
+}
+
+button#btnSalvar {
+  padding: 12px 20px;
+  font-size: 18px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+button#btnSalvar:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+/* Mensagens de feedback */
+#mensagens {
+  min-height: 28px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+/* Mapa ocupa quase toda a tela */
 #map {
-  height: 70vh;  /* altura suficiente para celular */
+  height: 75vh;
   width: 100%;
-  border-radius: 10px;
-  margin-top: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
