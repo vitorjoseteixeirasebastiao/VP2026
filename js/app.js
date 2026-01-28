@@ -1,8 +1,8 @@
-// Usa apenas importação padrão, sem Firebase
 document.addEventListener("DOMContentLoaded", () => {
 
   // ===== Mapa =====
-  const map = L.map("map").setView([0,0], 15);
+  // Inicializa no Brasil antes do GPS
+  const map = L.map("map").setView([-15,-55], 4);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
@@ -20,13 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let posicaoAtual = null;
 
-  // ===== Atualização do usuário =====
+  // ===== GPS =====
   if(navigator.geolocation){
     navigator.geolocation.watchPosition(pos => {
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
       marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
 
-      // Ajusta primeira visualização
+      // Ajusta a primeira visualização
       if(map.getZoom() < 5){
         map.setView([posicaoAtual.lat,posicaoAtual.lng], 18);
       }
