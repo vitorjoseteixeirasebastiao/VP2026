@@ -1,7 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, onSnapshot
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 /* Firebase */
 const firebaseConfig = {
@@ -18,39 +16,29 @@ const db = getFirestore(app);
 
 /* Mensagens */
 function mostrarMensagem(msg){
-  const m = document.getElementById("mensagens");
-  m.innerText = msg;
-  setTimeout(()=>m.innerText="",4000);
+  const el = document.getElementById("mensagens");
+  el.innerText = msg;
+  setTimeout(()=>el.innerText="",4000);
 }
 
 /* MAPA */
-const map = L.map("map").setView([-23.5505, -46.6333], 17);
+const map = L.map("map").setView([-23.5505, -46.6333], 18);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-/* 🔵 ÍCONE USUÁRIO (100% VISÍVEL) */
-const iconeUsuario = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-  iconSize: [28,28],
-  iconAnchor: [14,14]
-});
-
-/* 🅿️ ÍCONE VAGA */
-const iconeVaga = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684831.png",
-  iconSize: [40,40],
-  iconAnchor: [20,40]
-});
-
-/* Marcador usuário */
-const marcadorUsuario = L.marker([-23.5505,-46.6333], {
-  icon: iconeUsuario
+/* 🔵 USUÁRIO – circleMarker (NUNCA FALHA) */
+const marcadorUsuario = L.circleMarker([-23.5505,-46.6333], {
+  radius: 8,
+  color: "#fff",
+  weight: 3,
+  fillColor: "#007bff",
+  fillOpacity: 1
 }).addTo(map);
 
-/* Atualiza posição SEM travar */
-if(navigator.geolocation){
+/* Atualiza posição (sem travar mapa) */
+if (navigator.geolocation) {
   navigator.geolocation.watchPosition(pos=>{
     marcadorUsuario.setLatLng([
       pos.coords.latitude,
@@ -69,7 +57,7 @@ document.getElementById("btnLocalizacao").onclick = ()=>{
   });
 };
 
-/* Pesquisa endereço */
+/* 🔍 Pesquisa endereço */
 async function pesquisarEndereco(){
   const q = document.getElementById("search").value;
   if(!q) return mostrarMensagem("Digite um endereço");
@@ -79,12 +67,24 @@ async function pesquisarEndereco(){
   );
   const data = await res.json();
 
-  if(!data.length) return mostrarMensagem("Não encontrado");
+  if(!data.length) return mostrarMensagem("Endereço não encontrado");
 
   map.setView([data[0].lat, data[0].lon], 19);
 }
 
 document.getElementById("btnPesquisar").onclick = pesquisarEndereco;
+
+/* 🅿️ ÍCONE VAGA – SVG INLINE (IMPOSSÍVEL NÃO CARREGAR) */
+const iconeVaga = L.icon({
+  iconUrl: `data:image/svg+xml;utf8,
+  <svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'>
+    <rect width='48' height='48' rx='10' ry='10' fill='%23007bff'/>
+    <text x='50%' y='68%' text-anchor='middle'
+      font-size='28' fill='white' font-family='Arial'>P</text>
+  </svg>`,
+  iconSize: [40,40],
+  iconAnchor: [20,40]
+});
 
 /* Salvar vaga */
 async function salvarVaga(){
