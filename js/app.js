@@ -18,13 +18,15 @@ window.onload = function() {
   const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
 
   let primeiraLocalizacao = true;
-  let posicaoAtual = {lat: 0, lng: 0};
+  let posicaoAtual = null; // null até receber GPS real
 
   // ===== Atualiza localização do usuário =====
   if(navigator.geolocation){
     navigator.geolocation.watchPosition(pos=>{
-      posicaoAtual.lat = pos.coords.latitude;
-      posicaoAtual.lng = pos.coords.longitude;
+      posicaoAtual = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      };
 
       marcadorUsuario.setLatLng([posicaoAtual.lat, posicaoAtual.lng]);
 
@@ -35,18 +37,28 @@ window.onload = function() {
 
     }, err=>{
       console.log("Erro GPS:", err.message);
+      alert("Erro ao obter GPS: " + err.message);
     }, { enableHighAccuracy:true });
   } else {
     alert("GPS não disponível");
   }
 
   // ===== Botão adicionar marcador na posição atual =====
-  document.getElementById("btnMarcador").onclick = ()=>{
-    if(posicaoAtual.lat && posicaoAtual.lng){
-      L.marker([posicaoAtual.lat, posicaoAtual.lng]).addTo(map)
+  const btn = document.getElementById("btnMarcador");
+  btn.disabled = true; // desabilitado até receber posição
+
+  const habilitarBotao = setInterval(()=>{
+    if(posicaoAtual){
+      btn.disabled = false;
+      clearInterval(habilitarBotao);
+    }
+  }, 100);
+
+  btn.onclick = ()=>{
+    if(posicaoAtual){
+      L.marker([posicaoAtual.lat, posicaoAtual.lng])
+        .addTo(map)
         .bindPopup("Marcador na posição atual").openPopup();
-    } else {
-      alert("Aguardando localização do GPS...");
     }
   }
 
