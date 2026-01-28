@@ -10,11 +10,12 @@ body, html {
   position: relative;
 }
 
-/* Botões sobre o mapa */
+/* Botão sobre o mapa */
 .map-button {
   position: absolute;
   right: 10px;
-  z-index: 10000; /* alto para ficar sobre o mapa */
+  top: 10px;
+  z-index: 10000; /* garante que fique sobre o mapa */
   background: white;
   border: none;
   padding: 10px 14px;
@@ -26,13 +27,4 @@ body, html {
 
 .map-button:hover {
   background: #f0f0f0;
-}
-
-/* Posicionamento separado dos botões */
-#btnCentralizar {
-  top: 10px;
-}
-
-#btnMarcador {
-  top: 70px; /* distância do botão centralizar */
 }
