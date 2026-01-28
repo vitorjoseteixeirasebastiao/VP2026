@@ -1,7 +1,9 @@
-window.onload = function() {
+// Usa apenas importação padrão, sem Firebase
+document.addEventListener("DOMContentLoaded", () => {
 
   // ===== Mapa =====
-  const map = L.map("map").setView([0,0],15);
+  const map = L.map("map").setView([0,0], 15);
+
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
   }).addTo(map);
@@ -18,32 +20,35 @@ window.onload = function() {
 
   let posicaoAtual = null;
 
+  // ===== Atualização do usuário =====
   if(navigator.geolocation){
-    navigator.geolocation.watchPosition(pos=>{
+    navigator.geolocation.watchPosition(pos => {
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
       marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
-      // Ajusta a primeira visualização
+
+      // Ajusta primeira visualização
       if(map.getZoom() < 5){
-        map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+        map.setView([posicaoAtual.lat,posicaoAtual.lng], 18);
       }
-    }, err=>{
+    }, err => {
       console.error("Erro GPS:", err.message);
-    }, {enableHighAccuracy:true});
+      alert("Erro ao obter localização do GPS");
+    }, {enableHighAccuracy: true});
   } else {
-    console.error("GPS não disponível");
+    alert("GPS não disponível");
   }
 
   // ===== Botão adicionar marcador =====
   const btnMarcador = document.getElementById("btnMarcador");
-  btnMarcador.onclick = ()=>{
+  btnMarcador.onclick = () => {
     if(!posicaoAtual){
       alert("Aguardando localização do GPS...");
       return;
     }
-    // Adiciona marcador padrão Leaflet
     L.marker([posicaoAtual.lat,posicaoAtual.lng])
      .addTo(map)
-     .bindPopup("Marcador adicionado").openPopup();
+     .bindPopup("Marcador adicionado")
+     .openPopup();
   };
 
-};
+});
