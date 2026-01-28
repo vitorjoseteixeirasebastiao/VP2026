@@ -1,6 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, onSnapshot
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 /* ===== FIREBASE ===== */
@@ -20,7 +23,7 @@ const db = getFirestore(app);
 function mostrarMensagem(msg) {
   const div = document.getElementById("mensagens");
   div.innerText = msg;
-  setTimeout(() => div.innerText = "", 4000);
+  setTimeout(() => (div.innerText = ""), 4000);
 }
 
 /* ===== MAPA ===== */
@@ -43,15 +46,15 @@ const iconeUsuario = L.divIcon({
       box-shadow:0 0 8px rgba(0,123,255,.9);
     "></div>
   `,
-  iconSize: [18,18],
-  iconAnchor: [9,9]
+  iconSize: [18, 18],
+  iconAnchor: [9, 9]
 });
 
-const marcadorUsuario = L.marker([0,0], {
+const marcadorUsuario = L.marker([0, 0], {
   icon: iconeUsuario
 }).addTo(map);
 
-/* ===== GPS ===== */
+/* ===== GPS (INICIA UMA VEZ, NÃO TRAVA) ===== */
 let primeiraLocalizacao = true;
 
 navigator.geolocation.watchPosition(
@@ -66,7 +69,7 @@ navigator.geolocation.watchPosition(
       primeiraLocalizacao = false;
     }
   },
-  err => console.error(err),
+  err => console.error("Erro GPS:", err),
   { enableHighAccuracy: true }
 );
 
@@ -81,13 +84,13 @@ document.getElementById("btnLocalizacao").onclick = () => {
   });
 };
 
-/* ===== PESQUISA ENDEREÇO ===== */
+/* ===== BUSCA ENDEREÇO ===== */
 async function buscarEndereco() {
   const q = document.getElementById("search").value;
   if (!q) return;
 
   const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${q}`
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`
   );
   const data = await res.json();
 
@@ -102,7 +105,7 @@ document.getElementById("btnLimpar").onclick = () => {
 };
 
 /* ===== SALVAR VAGA ===== */
-document.getElementById("btnSalvar").onclick = async () => {
+document.getElementById("btnSalvar").onclick = () => {
   const numero = document.getElementById("numero").value;
   if (!numero) return mostrarMensagem("Digite o número");
 
@@ -115,20 +118,51 @@ document.getElementById("btnSalvar").onclick = async () => {
       confirmations: 1,
       data: new Date()
     });
+
     mostrarMensagem("Vaga criada");
     document.getElementById("numero").value = "";
   });
 };
 
-/* ===== VAGAS VALIDAS ===== */
+/* ===== MARCADORES DE VAGAS ===== */
 const markers = {};
-onSnapshot(collection(db, "teste"), snap => {
-  snap.forEach(d => {
-    const v = d.data();
-    if (v.status === "validado" && !markers[d.id]) {
-      markers[d.id] = L.marker([v.latitude, v.longitude])
-        .addTo(map)
-        .bindPopup(`Número: ${v.numero}`);
-    }
+
+onSnapshot(collection(db, "teste"), snapshot => {
+  snapshot.forEach(docSnap => {
+    const v = docSnap.data();
+    const id = docSnap.id;
+
+    if (markers[id]) return;
+
+    const cor = v.status === "validado" ? "#28a745" : "#6c757d";
+
+    const iconeVaga = L.divIcon({
+      className: "",
+      html: `
+        <div style="
+          width:22px;
+          height:22px;
+          background:${cor};
+          border:3px solid white;
+          border-radius:50%;
+          box-shadow:0 0 6px rgba(0,0,0,.4);
+        "></div>
+      `,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11]
+    });
+
+    const waze = `https://waze.com/ul?ll=${v.latitude},${v.longitude}&navigate=yes`;
+
+    markers[id] = L.marker(
+      [v.latitude, v.longitude],
+      { icon: iconeVaga }
+    )
+      .addTo(map)
+      .bindPopup(`
+        <p><b>Número:</b> ${v.numero}</p>
+        <p>Status: ${v.status}</p>
+        <a href="${waze}" target="_blank">Abrir no Waze</a>
+      `);
   });
 });
