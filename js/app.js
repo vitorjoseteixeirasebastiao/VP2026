@@ -18,7 +18,6 @@ window.onload = function() {
 
   let posicaoAtual = null;
 
-  // ===== Watch position =====
   if(navigator.geolocation){
     navigator.geolocation.watchPosition(pos=>{
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
@@ -33,16 +32,6 @@ window.onload = function() {
   } else {
     console.error("GPS não disponível");
   }
-
-  // ===== Botão centralizar =====
-  const btnCentralizar = document.getElementById("btnCentralizar");
-  btnCentralizar.onclick = ()=>{
-    if(posicaoAtual){
-      map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
-    } else {
-      alert("Aguardando localização do GPS...");
-    }
-  };
 
   // ===== Botão adicionar marcador =====
   const btnMarcador = document.getElementById("btnMarcador");
