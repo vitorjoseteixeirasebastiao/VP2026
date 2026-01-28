@@ -125,10 +125,16 @@ onSnapshot(collection(db,"teste"), snapshot=>{
     const d = change.doc.data();
     const id = change.doc.id;
 
-    if(markersVagas[id]) return; // já existe
-
+    // Cria URL do Waze
     const urlWaze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
 
+    // Se já existe, atualiza posição (caso GPS tenha mudado)
+    if(markersVagas[id]){
+      markersVagas[id].setLatLng([d.latitude,d.longitude]);
+      return;
+    }
+
+    // Cria marcador novo
     if(d.status === "validado"){
       markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
         .addTo(map)
