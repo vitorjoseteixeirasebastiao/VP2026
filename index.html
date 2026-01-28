@@ -2,36 +2,39 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  />
   <title>Mapa de Vagas</title>
 
-  <!-- Leaflet -->
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-  <input id="numero" type="text" placeholder="Número do local" />
+  <div id="topo">
+    <input id="numero" placeholder="Número do local" />
+    <button id="btnSalvar">Salvar vaga</button>
 
-  <button id="btnSalvar">Salvar vaga</button>
+    <input id="search" placeholder="Pesquisar endereço..." />
+    <button id="btnLocalizacao">📍 Minha localização</button>
 
-  <input id="search" type="text" placeholder="Pesquisar endereço..." />
-
-  <button id="btnLocalizacao">📍 Minha localização</button>
-
-  <div id="mensagens"></div>
+    <div id="mensagens"></div>
+  </div>
 
   <div id="map"></div>
 
-  <!-- Leaflet -->
+  <!-- Leaflet JS (ANTES do app.js) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- JS -->
+  <!-- App -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
