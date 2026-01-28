@@ -7,31 +7,32 @@ body, html {
 #map {
   width:100%;
   height:100vh;
+  position: relative;
 }
 
 /* Botões sobre o mapa */
 .map-button {
   position: absolute;
   right: 10px;
-  z-index: 1000;
+  z-index: 10000; /* alto para ficar sobre o mapa */
   background: white;
   border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 10px 14px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 18px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  font-size: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
 .map-button:hover {
   background: #f0f0f0;
 }
 
-/* Separação dos botões */
+/* Posicionamento separado dos botões */
 #btnCentralizar {
   top: 10px;
 }
 
 #btnMarcador {
-  top: 60px; /* distância do botão centralizar */
+  top: 70px; /* distância do botão centralizar */
 }
