@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs,
-  doc, updateDoc, onSnapshot
+  getFirestore, collection, addDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 /* Firebase */
@@ -24,20 +23,6 @@ function mostrarMensagem(texto) {
   setTimeout(() => div.innerText = "", 4000);
 }
 
-/* Distância */
-function calcularDistancia(lat1, lon1, lat2, lon2) {
-  const R = 6371e3;
-  const φ1 = lat1 * Math.PI / 180;
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(Δφ / 2) ** 2 +
-    Math.cos(φ1) * Math.cos(φ2) *
-    Math.sin(Δλ / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 /* Mapa */
 const map = L.map("map").setView([-23.5505, -46.6333], 16);
 
@@ -45,28 +30,27 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-/* Ícones */
-const iconeMoto = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-  iconSize: [35, 35],
-  iconAnchor: [17, 35]
-});
+/* 🔵 Ícone do usuário (círculo azul – PASSO 1) */
+const marcadorUsuario = L.circleMarker([0, 0], {
+  radius: 10,
+  fillColor: "#1e90ff",
+  color: "#ffffff",
+  weight: 3,
+  opacity: 1,
+  fillOpacity: 1
+}).addTo(map);
 
-const iconeUsuario = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-  iconSize: [30, 30],
-  iconAnchor: [15, 30]
-});
-
-/* Usuário */
-const marcadorUsuario = L.marker([0, 0], { icon: iconeUsuario }).addTo(map);
-
-navigator.geolocation.watchPosition(pos => {
-  marcadorUsuario.setLatLng([
-    pos.coords.latitude,
-    pos.coords.longitude
-  ]);
-});
+/* GPS em tempo real (não trava o mapa) */
+navigator.geolocation.watchPosition(
+  pos => {
+    marcadorUsuario.setLatLng([
+      pos.coords.latitude,
+      pos.coords.longitude
+    ]);
+  },
+  err => console.error("Erro GPS:", err),
+  { enableHighAccuracy: true }
+);
 
 /* 📍 Botão centralizar */
 document.getElementById("btnLocalizacao").onclick = () => {
@@ -78,16 +62,21 @@ document.getElementById("btnLocalizacao").onclick = () => {
   });
 };
 
-/* 🔍 Pesquisa endereço */
+/* 🔍 Pesquisa de endereço */
 document.getElementById("search").addEventListener("keydown", async e => {
   if (e.key === "Enter") {
     const q = e.target.value;
+    if (!q) return;
+
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${q}`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`
     );
     const data = await res.json();
+
     if (data[0]) {
       map.setView([data[0].lat, data[0].lon], 18);
+    } else {
+      mostrarMensagem("Endereço não encontrado");
     }
   }
 });
@@ -115,16 +104,14 @@ document.getElementById("btnSalvar").onclick = salvarVaga;
 
 /* Vagas validadas */
 const markersVagas = {};
-const vagasRef = collection(db, "teste");
-
-onSnapshot(vagasRef, snap => {
+onSnapshot(collection(db, "teste"), snap => {
   snap.forEach(docSnap => {
     const d = docSnap.data();
     if (d.status === "validado" && !markersVagas[docSnap.id]) {
       const waze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
+
       markersVagas[docSnap.id] = L.marker(
-        [d.latitude, d.longitude],
-        { icon: iconeMoto }
+        [d.latitude, d.longitude]
       ).addTo(map).bindPopup(
         `<p>Número: ${d.numero}</p>
          <a href="${waze}" target="_blank">Abrir no Waze</a>`
