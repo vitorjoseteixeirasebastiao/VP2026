@@ -1,26 +1,27 @@
-html, body {
-  height: 100%;
-  margin: 0;
+body, html {
+  margin:0;
+  padding:0;
+  height:100%;
 }
 
 #map {
-  width: 100%;
-  height: 100vh; /* garante altura total */
-  position: relative;
+  width:100%;
+  height:100vh;
 }
 
+/* Botão centralizar sobre o mapa */
 .map-button {
   position: absolute;
-  right: 10px;
   top: 10px;
-  z-index: 10000;
+  right: 10px;
+  z-index: 1000;
   background: white;
   border: none;
-  padding: 10px 14px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
 .map-button:hover {
