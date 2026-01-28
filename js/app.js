@@ -118,33 +118,41 @@ async function salvarVaga(){
 
 document.getElementById("btnSalvar").addEventListener("click", salvarVaga);
 
-// ===== Atualização em tempo real das vagas com link para Waze =====
+// ===== Marcadores =====
 const markersVagas = {};
+
+// Função para criar ou atualizar marcador
+function criarOuAtualizarMarcador(id, d){
+  const urlWaze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
+
+  if(markersVagas[id]){
+    markersVagas[id].setLatLng([d.latitude,d.longitude]);
+    return;
+  }
+
+  if(d.status === "validado"){
+    markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
+      .addTo(map)
+      .bindPopup(`<p>Número: ${d.numero}</p>
+                  <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
+  } else {
+    markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconePendente})
+      .addTo(map)
+      .bindPopup(`<p>Número: ${d.numero} (pendente)</p>
+                  <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
+  }
+}
+
+// ===== Carrega todos os documentos existentes =====
+async function carregarVagasIniciais(){
+  const snapshot = await getDocs(collection(db,"teste"));
+  snapshot.docs.forEach(docSnap => criarOuAtualizarMarcador(docSnap.id, docSnap.data()));
+}
+carregarVagasIniciais();
+
+// ===== Atualização em tempo real =====
 onSnapshot(collection(db,"teste"), snapshot=>{
   snapshot.docChanges().forEach(change=>{
-    const d = change.doc.data();
-    const id = change.doc.id;
-
-    // Cria URL do Waze
-    const urlWaze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
-
-    // Se já existe, atualiza posição (caso GPS tenha mudado)
-    if(markersVagas[id]){
-      markersVagas[id].setLatLng([d.latitude,d.longitude]);
-      return;
-    }
-
-    // Cria marcador novo
-    if(d.status === "validado"){
-      markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
-        .addTo(map)
-        .bindPopup(`<p>Número: ${d.numero}</p>
-                    <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
-    } else {
-      markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconePendente})
-        .addTo(map)
-        .bindPopup(`<p>Número: ${d.numero} (pendente)</p>
-                    <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
-    }
+    criarOuAtualizarMarcador(change.doc.id, change.doc.data());
   });
 });
