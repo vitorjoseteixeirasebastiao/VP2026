@@ -23,6 +23,7 @@ window.onload = async function(){
 
   // ===== Inicializa mapa =====
   const map = L.map("map").setView([0,0],15);
+
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
   }).addTo(map);
@@ -96,12 +97,11 @@ window.onload = async function(){
   }
 
   // ===== Marcadores do Firebase =====
-  const markers = {}; // Armazena marcadores existentes
-  const colRef = collection(db,"teste");
+  const markers = {}; // armazena todos os marcadores
 
-  // 1️⃣ Carrega marcadores existentes ao iniciar
-  const snapshotInicial = await getDocs(colRef);
-  snapshotInicial.forEach(docSnap=>{
+  // 1️⃣ Carrega marcadores existentes
+  const docsExistentes = await getDocs(collection(db,"teste"));
+  docsExistentes.forEach(docSnap=>{
     const id = docSnap.id;
     const data = docSnap.data();
     markers[id] = L.marker([data.latitude,data.longitude])
@@ -110,13 +110,13 @@ window.onload = async function(){
   });
 
   // 2️⃣ Atualização automática para novos marcadores
-  onSnapshot(colRef, snapshot=>{
+  onSnapshot(collection(db,"teste"), snapshot=>{
     snapshot.docChanges().forEach(change=>{
       const id = change.doc.id;
       const data = change.doc.data();
 
+      // Se é um novo marcador e ainda não existe no mapa
       if(change.type === "added" && !markers[id]){
-        // Novo marcador adicionado por outro usuário
         markers[id] = L.marker([data.latitude,data.longitude])
                         .addTo(map)
                         .bindPopup("Marcador na posição");
