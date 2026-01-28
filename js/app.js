@@ -15,10 +15,10 @@ window.onload = async function() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  function mostrarMensagem(msg) {
+  function mostrarMensagem(msg){
     const div = document.getElementById("mensagens");
     div.innerText = msg;
-    setTimeout(() => div.innerText = "", 3000);
+    setTimeout(()=> div.innerText="", 3000);
   }
 
   // ===== Inicializa mapa =====
@@ -34,23 +34,22 @@ window.onload = async function() {
     iconSize:[16,16],
     iconAnchor:[8,8]
   });
+  const marcadorUsuario = L.marker([0,0], {icon:iconeUsuario}).addTo(map);
 
-  const marcadorUsuario = L.marker([0,0], {icon: iconeUsuario}).addTo(map);
   let posicaoAtual = null;
   let primeiraLocalizacao = true;
 
   // ===== Atualiza posição do usuário =====
   if(navigator.geolocation){
-    navigator.geolocation.watchPosition(pos => {
+    navigator.geolocation.watchPosition(pos=>{
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
-      marcadorUsuario.setLatLng([posicaoAtual.lat, posicaoAtual.lng]);
+      marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
 
       if(primeiraLocalizacao){
-        map.setView([posicaoAtual.lat, posicaoAtual.lng], 18);
-        primeiraLocalizacao = false;
+        map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+        primeiraLocalizacao=false;
       }
-
-    }, err => {
+    }, err=>{
       mostrarMensagem("Erro GPS: "+err.message);
       console.log(err);
     }, {enableHighAccuracy:true});
@@ -69,13 +68,14 @@ window.onload = async function() {
     }
   },100);
 
-  btnMarcador.onclick = async () => {
+  btnMarcador.onclick = async ()=>{
     if(!posicaoAtual) return;
 
     // Adiciona marcador no mapa
-    L.marker([posicaoAtual.lat, posicaoAtual.lng])
+    L.marker([posicaoAtual.lat,posicaoAtual.lng])
       .addTo(map)
-      .bindPopup("Marcador na posição atual").openPopup();
+      .bindPopup("Marcador na posição atual")
+      .openPopup();
 
     // Salva no Firebase
     try {
@@ -95,36 +95,34 @@ window.onload = async function() {
   const markers = {};
   const colRef = collection(db,"teste");
 
-  // 1️⃣ Carrega todos os marcadores existentes
+  // Carrega todos os marcadores existentes
   const docsExistentes = await getDocs(colRef);
   docsExistentes.forEach(docSnap=>{
     const id = docSnap.id;
     const data = docSnap.data();
-    markers[id] = L.marker([data.latitude, data.longitude])
+    markers[id] = L.marker([data.latitude,data.longitude])
                     .addTo(map)
-                    .bindPopup("Marcador na posição");
+                    .bindPopup("Marcador existente");
   });
 
-  // 2️⃣ Escuta novos marcadores em tempo real
+  // Atualização em tempo real
   onSnapshot(colRef, snapshot=>{
     snapshot.docChanges().forEach(change=>{
       const id = change.doc.id;
       const data = change.doc.data();
-
       if(change.type === "added" && !markers[id]){
-        markers[id] = L.marker([data.latitude, data.longitude])
+        markers[id] = L.marker([data.latitude,data.longitude])
                         .addTo(map)
-                        .bindPopup("Marcador na posição");
+                        .bindPopup("Marcador existente");
       }
     });
   });
 
   // ===== Botão centralizar =====
   const btnCentralizar = document.getElementById("btnCentralizar");
-  btnCentralizar.onclick = () => {
+  btnCentralizar.onclick = ()=>{
     if(posicaoAtual){
-      map.setView([posicaoAtual.lat, posicaoAtual.lng], 18);
+      map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
     }
   };
-
 };
