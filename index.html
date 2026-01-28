@@ -2,27 +2,24 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa de Vagas de Moto</title>
+<title>Mapa Vagas de Moto</title>
 
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <h2>Registrar Vaga de Moto</h2>
-
-<div id="form-container">
-  <input type="number" id="numero" placeholder="Número do local">
-  <button id="btnSalvar">Salvar</button>
-</div>
-
+<input type="number" id="numero" placeholder="Número do local">
+<button id="btnSalvar">Salvar</button>
 <div id="mensagens"></div>
 <div id="map"></div>
 
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script type="module" src="app.js"></script>
+<script type="module" src="js/app.js"></script>
 
 </body>
 </html>
