@@ -1,39 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Vagas de Moto</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mapa de Vagas</title>
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <h2>Registrar Vaga de Moto</h2>
+<h2>Registrar Vaga</h2>
 
-  <input type="number" id="numero" placeholder="Número do local">
-  <button id="btnSalvar">Salvar</button>
+<input type="number" id="numero" placeholder="Número do local">
+<button id="btnSalvar">Salvar vaga</button>
 
-  <!-- Pesquisa -->
-  <input type="text" id="search" placeholder="Pesquisar endereço">
-  <button id="btnPesquisar">Pesquisar endereço</button>
+<input type="text" id="search" placeholder="Pesquisar endereço">
+<button id="btnPesquisar">Pesquisar</button>
 
-  <!-- Localização -->
-  <button id="btnLocalizacao">Minha localização</button>
+<button id="btnLocalizacao">Minha localização</button>
 
-  <div id="mensagens"></div>
-  <div id="map"></div>
+<div id="mensagens"></div>
+<div id="map"></div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- App -->
-  <script type="module" src="js/app.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
