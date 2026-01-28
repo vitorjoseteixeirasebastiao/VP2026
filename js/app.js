@@ -52,7 +52,36 @@ window.onload = async function() {
     }, err=>{
       mostrarMensagem("Erro GPS: "+err.message);
     }, {enableHighAccuracy:true});
+  } else {
+    mostrarMensagem("GPS não disponível");
   }
+
+  // ===== Referência Firebase =====
+  const colRef = collection(db,"teste");
+  const markers = {};
+
+  // ===== Carrega marcadores existentes =====
+  const docsExistentes = await getDocs(colRef);
+  docsExistentes.forEach(docSnap=>{
+    const id = docSnap.id;
+    const data = docSnap.data();
+    markers[id] = L.marker([data.latitude,data.longitude])
+                    .addTo(map)
+                    .bindPopup("Marcador existente");
+  });
+
+  // ===== Atualização em tempo real =====
+  onSnapshot(colRef, snapshot=>{
+    snapshot.docChanges().forEach(change=>{
+      const id = change.doc.id;
+      const data = change.doc.data();
+      if(change.type==="added" && !markers[id]){
+        markers[id] = L.marker([data.latitude,data.longitude])
+                        .addTo(map)
+                        .bindPopup("Marcador existente");
+      }
+    });
+  });
 
   // ===== Botão adicionar marcador =====
   const btnMarcador = document.getElementById("btnMarcador");
@@ -67,11 +96,15 @@ window.onload = async function() {
   btnMarcador.onclick = async ()=>{
     if(!posicaoAtual) return;
     try{
-      await addDoc(collection(db,"teste"),{
+      const docRef = await addDoc(colRef,{
         latitude: posicaoAtual.lat,
         longitude: posicaoAtual.lng,
         data: new Date()
       });
+      // adiciona marcador imediatamente
+      markers[docRef.id] = L.marker([posicaoAtual.lat,posicaoAtual.lng])
+                           .addTo(map)
+                           .bindPopup("Marcador criado");
       mostrarMensagem("Marcador salvo!");
     } catch(err){
       console.error(err);
@@ -81,7 +114,7 @@ window.onload = async function() {
 
   // ===== Botão centralizar no usuário =====
   const btnCentralizar = document.getElementById("btnCentralizar");
-  btnCentralizar.disabled = true; // bloqueia até ter posição
+  btnCentralizar.disabled = true;
   const habilitarCentralizar = setInterval(()=>{
     if(posicaoAtual){
       btnCentralizar.disabled = false;
@@ -90,34 +123,9 @@ window.onload = async function() {
   },100);
 
   btnCentralizar.onclick = ()=>{
-    if(posicaoAtual) map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+    if(posicaoAtual){
+      map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+    }
   };
-
-  // ===== Marcadores do Firebase =====
-  const markers = {};
-  const colRef = collection(db,"teste");
-
-  // Carrega marcadores existentes
-  const docsExistentes = await getDocs(colRef);
-  docsExistentes.forEach(docSnap=>{
-    const id = docSnap.id;
-    const data = docSnap.data();
-    markers[id] = L.marker([data.latitude,data.longitude])
-                    .addTo(map)
-                    .bindPopup("Marcador existente");
-  });
-
-  // Atualização em tempo real
-  onSnapshot(colRef, snapshot=>{
-    snapshot.docChanges().forEach(change=>{
-      const id = change.doc.id;
-      const data = change.doc.data();
-      if(change.type==="added" && !markers[id]){
-        markers[id] = L.marker([data.latitude,data.longitude])
-                        .addTo(map)
-                        .bindPopup("Marcador existente");
-      }
-    });
-  });
 
 };
