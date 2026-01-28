@@ -42,4 +42,15 @@ window.onload = function() {
     }
   };
 
+  // ===== Botão adicionar marcador =====
+  const btnMarcador = document.getElementById("btnMarcador");
+  btnMarcador.onclick = ()=>{
+    if(!posicaoAtual){
+      alert("Aguardando localização do GPS...");
+      return;
+    }
+    L.marker([posicaoAtual.lat,posicaoAtual.lng]).addTo(map)
+     .bindPopup("Marcador adicionado").openPopup();
+  };
+
 };
