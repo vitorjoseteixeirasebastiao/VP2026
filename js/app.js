@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-window.onload = function(){
+window.onload = async function(){
 
   // ===== Firebase =====
   const firebaseConfig = {
@@ -23,7 +23,6 @@ window.onload = function(){
 
   // ===== Inicializa mapa =====
   const map = L.map("map").setView([0,0],15);
-
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
   }).addTo(map);
@@ -96,23 +95,31 @@ window.onload = function(){
     }
   }
 
-  // ===== Atualização automática de todos os marcadores =====
-  const markers = {}; // armazena os marcadores existentes
+  // ===== Marcadores do Firebase =====
+  const markers = {}; // Armazena marcadores existentes
   const colRef = collection(db,"teste");
 
-  onSnapshot(colRef, snapshot=>{
-    snapshot.docs.forEach(docSnap=>{
-      const id = docSnap.id;
-      const data = docSnap.data();
+  // 1️⃣ Carrega marcadores existentes ao iniciar
+  const snapshotInicial = await getDocs(colRef);
+  snapshotInicial.forEach(docSnap=>{
+    const id = docSnap.id;
+    const data = docSnap.data();
+    markers[id] = L.marker([data.latitude,data.longitude])
+                    .addTo(map)
+                    .bindPopup("Marcador na posição");
+  });
 
-      // Se já existe marcador, só atualiza posição
-      if(markers[id]){
-        markers[id].setLatLng([data.latitude,data.longitude]);
-      } else {
-        // Cria novo marcador
+  // 2️⃣ Atualização automática para novos marcadores
+  onSnapshot(colRef, snapshot=>{
+    snapshot.docChanges().forEach(change=>{
+      const id = change.doc.id;
+      const data = change.doc.data();
+
+      if(change.type === "added" && !markers[id]){
+        // Novo marcador adicionado por outro usuário
         markers[id] = L.marker([data.latitude,data.longitude])
-                          .addTo(map)
-                          .bindPopup("Marcador na posição");
+                        .addTo(map)
+                        .bindPopup("Marcador na posição");
       }
     });
   });
