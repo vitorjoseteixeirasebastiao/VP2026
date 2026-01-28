@@ -22,8 +22,9 @@ const db = getFirestore(app);
 /* ===== MENSAGENS ===== */
 function mostrarMensagem(msg) {
   const div = document.getElementById("mensagens");
+  if (!div) return;
   div.innerText = msg;
-  setTimeout(() => (div.innerText = ""), 4000);
+  setTimeout(() => (div.innerText = ""), 3000);
 }
 
 /* ===== MAPA ===== */
@@ -38,23 +39,21 @@ const iconeUsuario = L.divIcon({
   className: "",
   html: `
     <div style="
-      width:18px;
-      height:18px;
+      width:16px;
+      height:16px;
       background:#007bff;
       border:3px solid white;
       border-radius:50%;
-      box-shadow:0 0 8px rgba(0,123,255,.9);
+      box-shadow:0 0 6px rgba(0,123,255,.8);
     "></div>
   `,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9]
+  iconSize: [16, 16],
+  iconAnchor: [8, 8]
 });
 
-const marcadorUsuario = L.marker([0, 0], {
-  icon: iconeUsuario
-}).addTo(map);
+const marcadorUsuario = L.marker([0, 0], { icon: iconeUsuario }).addTo(map);
 
-/* ===== GPS (INICIA UMA VEZ, NÃO TRAVA) ===== */
+/* ===== GPS (INICIA UMA VEZ) ===== */
 let primeiraLocalizacao = true;
 
 navigator.geolocation.watchPosition(
@@ -69,28 +68,31 @@ navigator.geolocation.watchPosition(
       primeiraLocalizacao = false;
     }
   },
-  err => console.error("Erro GPS:", err),
+  err => mostrarMensagem("Erro GPS"),
   { enableHighAccuracy: true }
 );
 
 /* ===== BOTÃO CENTRALIZAR ===== */
-document.getElementById("btnLocalizacao").onclick = () => {
-  navigator.geolocation.getCurrentPosition(pos => {
-    map.setView(
-      [pos.coords.latitude, pos.coords.longitude],
-      18,
-      { animate: true }
-    );
-  });
-};
+const btnLocalizacao = document.getElementById("btnLocalizacao");
+if (btnLocalizacao) {
+  btnLocalizacao.onclick = () => {
+    navigator.geolocation.getCurrentPosition(pos => {
+      map.setView(
+        [pos.coords.latitude, pos.coords.longitude],
+        18,
+        { animate: true }
+      );
+    });
+  };
+}
 
 /* ===== BUSCA ENDEREÇO ===== */
 async function buscarEndereco() {
-  const q = document.getElementById("search").value;
-  if (!q) return;
+  const input = document.getElementById("search");
+  if (!input || !input.value) return;
 
   const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input.value)}`
   );
   const data = await res.json();
 
@@ -99,14 +101,14 @@ async function buscarEndereco() {
   }
 }
 
-document.getElementById("btnBuscar").onclick = buscarEndereco;
-document.getElementById("btnLimpar").onclick = () => {
+document.getElementById("btnBuscar")?.addEventListener("click", buscarEndereco);
+document.getElementById("btnLimpar")?.addEventListener("click", () => {
   document.getElementById("search").value = "";
-};
+});
 
 /* ===== SALVAR VAGA ===== */
-document.getElementById("btnSalvar").onclick = () => {
-  const numero = document.getElementById("numero").value;
+document.getElementById("btnSalvar")?.addEventListener("click", () => {
+  const numero = document.getElementById("numero")?.value;
   if (!numero) return mostrarMensagem("Digite o número");
 
   navigator.geolocation.getCurrentPosition(async pos => {
@@ -118,13 +120,12 @@ document.getElementById("btnSalvar").onclick = () => {
       confirmations: 1,
       data: new Date()
     });
-
     mostrarMensagem("Vaga criada");
     document.getElementById("numero").value = "";
   });
-};
+});
 
-/* ===== MARCADORES DE VAGAS ===== */
+/* ===== MARCADORES (PADRÃO LEAFLET) ===== */
 const markers = {};
 
 onSnapshot(collection(db, "teste"), snapshot => {
@@ -134,35 +135,15 @@ onSnapshot(collection(db, "teste"), snapshot => {
 
     if (markers[id]) return;
 
-    const cor = v.status === "validado" ? "#28a745" : "#6c757d";
-
-    const iconeVaga = L.divIcon({
-      className: "",
-      html: `
-        <div style="
-          width:22px;
-          height:22px;
-          background:${cor};
-          border:3px solid white;
-          border-radius:50%;
-          box-shadow:0 0 6px rgba(0,0,0,.4);
-        "></div>
-      `,
-      iconSize: [22, 22],
-      iconAnchor: [11, 11]
-    });
-
-    const waze = `https://waze.com/ul?ll=${v.latitude},${v.longitude}&navigate=yes`;
+    mostrarMensagem("Criando marcador");
 
     markers[id] = L.marker(
-      [v.latitude, v.longitude],
-      { icon: iconeVaga }
+      [v.latitude, v.longitude] // ÍCONE PADRÃO
     )
-      .addTo(map)
-      .bindPopup(`
-        <p><b>Número:</b> ${v.numero}</p>
-        <p>Status: ${v.status}</p>
-        <a href="${waze}" target="_blank">Abrir no Waze</a>
-      `);
+    .addTo(map)
+    .bindPopup(`
+      <p><b>Número:</b> ${v.numero}</p>
+      <p>Status: ${v.status}</p>
+    `);
   });
 });
