@@ -3,37 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teste Mapa</title>
+  <title>Mapa Vagas de Moto</title>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <!-- Firebase v8 (GLOBAL) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
   <style>
-    #map { height: 100vh; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 5px;
+      background: #f7f7f7;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 22px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 16px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    button {
+      border: none;
+      background: #007bff;
+      color: white;
+    }
+
+    #mensagens {
+      min-height: 35px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    #map {
+      height: 75vh;
+      width: 100%;
+      border-radius: 12px;
+    }
+
+    /* Botão flutuante */
+    #btnLocalizacao {
+      position: absolute;
+      right: 15px;
+      bottom: 90px;
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      font-size: 22px;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
 
+<h2>Registrar Vaga de Moto</h2>
+
+<input type="number" id="numero" placeholder="Número do local">
+<button id="btnSalvar">Salvar</button>
+
+<input type="text" id="search" placeholder="Pesquisar endereço">
+<button id="btnBuscar">Buscar</button>
+
+<button id="btnLocalizacao">📍</button>
+
+<div id="mensagens"></div>
 <div id="map"></div>
 
+<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script>
-  var map = L.map("map").setView([-23.5505, -46.6333], 15);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
-
-  navigator.geolocation.getCurrentPosition(function(pos){
-    var lat = pos.coords.latitude;
-    var lng = pos.coords.longitude;
-
-    map.setView([lat, lng], 18);
-
-    L.marker([lat, lng]).addTo(map)
-      .bindPopup("Você está aqui")
-      .openPopup();
-  });
-</script>
+<!-- App -->
+<script src="js/app.js"></script>
 
 </body>
 </html>
