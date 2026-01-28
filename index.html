@@ -3,37 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Vagas de Moto</title>
+  <title>Mapa Base</title>
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h2>Registrar Vaga de Moto</h2>
+<div id="map"></div>
 
-  <input type="number" id="numero" placeholder="Número do local">
-  <button id="btnSalvar">Salvar</button>
-
-  <!-- 🔍 Pesquisa de endereço -->
-  <input type="text" id="search" placeholder="Pesquisar endereço">
-
-  <!-- 📍 Botão localização -->
-  <button id="btnLocalizacao">Minha localização</button>
-
-  <div id="mensagens"></div>
-  <div id="map"></div>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- App -->
-  <script type="module" src="js/app.js"></script>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
