@@ -1,9 +1,7 @@
-document.addEventListener("DOMContentLoaded", () => {
+window.onload = function() {
 
   // ===== Mapa =====
-  // Inicializa no Brasil antes do GPS
-  const map = L.map("map").setView([-15,-55], 4);
-
+  const map = L.map("map").setView([0,0],15);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
   }).addTo(map);
@@ -19,36 +17,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const marcadorUsuario = L.marker([0,0], {icon:iconeUsuario}).addTo(map);
 
   let posicaoAtual = null;
+  let primeiraLocalizacao = true;
 
-  // ===== GPS =====
   if(navigator.geolocation){
-    navigator.geolocation.watchPosition(pos => {
+    navigator.geolocation.watchPosition(pos=>{
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
       marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
-
-      // Ajusta a primeira visualização
-      if(map.getZoom() < 5){
-        map.setView([posicaoAtual.lat,posicaoAtual.lng], 18);
+      if(primeiraLocalizacao){
+        map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+        primeiraLocalizacao=false;
       }
-    }, err => {
+    }, err=>{
       console.error("Erro GPS:", err.message);
-      alert("Erro ao obter localização do GPS");
-    }, {enableHighAccuracy: true});
+    }, {enableHighAccuracy:true});
   } else {
-    alert("GPS não disponível");
+    console.error("GPS não disponível");
   }
 
-  // ===== Botão adicionar marcador =====
-  const btnMarcador = document.getElementById("btnMarcador");
-  btnMarcador.onclick = () => {
-    if(!posicaoAtual){
-      alert("Aguardando localização do GPS...");
-      return;
+  // ===== Botão centralizar =====
+  const btnCentralizar = document.getElementById("btnCentralizar");
+  btnCentralizar.onclick = ()=>{
+    if(posicaoAtual){
+      map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
     }
-    L.marker([posicaoAtual.lat,posicaoAtual.lng])
-     .addTo(map)
-     .bindPopup("Marcador adicionado")
-     .openPopup();
   };
 
-});
+};
