@@ -96,7 +96,7 @@ window.onload = function () {
 
   /* ===== ÍCONE DO MARCADOR ===== */
   var iconeVaga = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png", // ícone de placa de estacionamento
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png", // ícone de placa
     iconSize: [35,35],
     iconAnchor: [17,35]
   });
@@ -105,13 +105,18 @@ window.onload = function () {
   var markers = {};
 
   db.collection("teste").onSnapshot(function(snapshot){
-    snapshot.docChanges().forEach(function(change){
-      var doc = change.doc;
-      var v = doc.data();
-      var id = doc.id;
+    snapshot.forEach(function(docSnap){
+      var v = docSnap.data();
+      var id = docSnap.id;
 
-      if(markers[id]) return; // já existe
+      // Se já existe, atualiza popup
+      if(markers[id]){
+        markers[id].setLatLng([v.latitude,v.longitude])
+                  .setPopupContent("<b>Número:</b> " + v.numero + "<br>Status: " + v.status);
+        return;
+      }
 
+      // Cria novo marcador
       markers[id] = L.marker([v.latitude,v.longitude], {icon: iconeVaga})
         .addTo(map)
         .bindPopup("<b>Número:</b> " + v.numero + "<br>Status: " + v.status);
