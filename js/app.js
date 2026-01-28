@@ -21,14 +21,16 @@ function mostrarMensagem(msg) {
   setTimeout(() => el.innerText = "", 4000);
 }
 
-/* 🗺️ MAPA — inicia genérico */
-const map = L.map("map").setView([0, 0], 2);
+/* 🗺️ MAPA */
+const map = L.map("map", {
+  zoomControl: true
+}).setView([0, 0], 2);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-/* 🔵 Usuário = círculo azul */
+/* 🔵 Usuário (círculo azul) */
 const marcadorUsuario = L.circleMarker([0, 0], {
   radius: 10,
   fillColor: "#1e90ff",
@@ -37,9 +39,9 @@ const marcadorUsuario = L.circleMarker([0, 0], {
   fillOpacity: 1
 }).addTo(map);
 
-let mapaCentralizado = false;
+let centralizadoInicial = false;
 
-/* 📍 GPS em tempo real */
+/* 📍 GPS */
 navigator.geolocation.watchPosition(
   pos => {
     const lat = pos.coords.latitude;
@@ -47,26 +49,38 @@ navigator.geolocation.watchPosition(
 
     marcadorUsuario.setLatLng([lat, lng]);
 
-    /* 🔥 CENTRALIZA APENAS NA PRIMEIRA LEITURA */
-    if (!mapaCentralizado) {
+    if (!centralizadoInicial) {
       map.setView([lat, lng], 18);
-      mapaCentralizado = true;
+
+      // 🔥 ESSENCIAL PARA MOBILE
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 300);
+
+      centralizadoInicial = true;
     }
   },
   err => {
     console.error(err);
     mostrarMensagem("Erro ao acessar GPS");
   },
-  { enableHighAccuracy: true }
+  {
+    enableHighAccuracy: true,
+    maximumAge: 0
+  }
 );
 
-/* 📍 Botão centralizar manual */
+/* 📍 Botão centralizar */
 document.getElementById("btnLocalizacao").onclick = () => {
   navigator.geolocation.getCurrentPosition(pos => {
     map.setView(
       [pos.coords.latitude, pos.coords.longitude],
       18
     );
+
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
   });
 };
 
@@ -83,6 +97,7 @@ document.getElementById("search").addEventListener("keydown", async e => {
 
     if (data[0]) {
       map.setView([data[0].lat, data[0].lon], 18);
+      setTimeout(() => map.invalidateSize(), 200);
     } else {
       mostrarMensagem("Endereço não encontrado");
     }
