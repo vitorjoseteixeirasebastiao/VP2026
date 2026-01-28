@@ -3,37 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Vagas de Moto</title>
+  <title>Teste Mapa</title>
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    #map { height: 100vh; }
+  </style>
 </head>
 <body>
 
-  <h2>Registrar Vaga de Moto</h2>
+<div id="map"></div>
 
-  <input type="number" id="numero" placeholder="Número do local">
-  <button id="btnSalvar">Salvar</button>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- 🔍 Pesquisa de endereço -->
-  <input type="text" id="search" placeholder="Pesquisar endereço">
+<script>
+  var map = L.map("map").setView([-23.5505, -46.6333], 15);
 
-  <!-- 📍 Botão localização -->
-  <button id="btnLocalizacao">Minha localização</button>
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
 
-  <div id="mensagens"></div>
-  <div id="map"></div>
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat = pos.coords.latitude;
+    var lng = pos.coords.longitude;
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    map.setView([lat, lng], 18);
 
-  <!-- App -->
-  <script type="module" src="js/app.js"></script>
+    L.marker([lat, lng]).addTo(map)
+      .bindPopup("Você está aqui")
+      .openPopup();
+  });
+</script>
 
 </body>
 </html>
