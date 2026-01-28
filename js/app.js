@@ -1,7 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, onSnapshot
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 /* Firebase */
 const firebaseConfig = {
@@ -17,38 +15,50 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /* Mensagens */
-function mostrarMensagem(texto) {
-  const div = document.getElementById("mensagens");
-  div.innerText = texto;
-  setTimeout(() => div.innerText = "", 4000);
+function mostrarMensagem(msg) {
+  const el = document.getElementById("mensagens");
+  el.innerText = msg;
+  setTimeout(() => el.innerText = "", 4000);
 }
 
-/* Mapa */
-const map = L.map("map").setView([-23.5505, -46.6333], 16);
+let map;
+let marcadorUsuario;
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap"
-}).addTo(map);
-
-/* 🔵 Ícone do usuário (círculo azul – PASSO 1) */
-const marcadorUsuario = L.circleMarker([0, 0], {
-  radius: 10,
-  fillColor: "#1e90ff",
-  color: "#ffffff",
-  weight: 3,
-  opacity: 1,
-  fillOpacity: 1
-}).addTo(map);
-
-/* GPS em tempo real (não trava o mapa) */
-navigator.geolocation.watchPosition(
+/* 🚀 INICIALIZAÇÃO PELO GPS */
+navigator.geolocation.getCurrentPosition(
   pos => {
-    marcadorUsuario.setLatLng([
-      pos.coords.latitude,
-      pos.coords.longitude
-    ]);
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+
+    /* MAPA inicia na localização do usuário */
+    map = L.map("map").setView([lat, lng], 18);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    /* 🔵 Usuário = círculo azul */
+    marcadorUsuario = L.circleMarker([lat, lng], {
+      radius: 10,
+      fillColor: "#1e90ff",
+      color: "#ffffff",
+      weight: 3,
+      fillOpacity: 1
+    }).addTo(map);
+
+    /* Atualização em tempo real (sem travar o mapa) */
+    navigator.geolocation.watchPosition(pos => {
+      marcadorUsuario.setLatLng([
+        pos.coords.latitude,
+        pos.coords.longitude
+      ]);
+    });
+
   },
-  err => console.error("Erro GPS:", err),
+  err => {
+    console.error(err);
+    mostrarMensagem("Erro ao obter localização");
+  },
   { enableHighAccuracy: true }
 );
 
@@ -82,7 +92,7 @@ document.getElementById("search").addEventListener("keydown", async e => {
 });
 
 /* Salvar vaga */
-async function salvarVaga() {
+document.getElementById("btnSalvar").onclick = () => {
   const numero = document.getElementById("numero").value;
   if (!numero) return mostrarMensagem("Digite o número");
 
@@ -98,9 +108,7 @@ async function salvarVaga() {
     mostrarMensagem("Vaga criada");
     document.getElementById("numero").value = "";
   });
-}
-
-document.getElementById("btnSalvar").onclick = salvarVaga;
+};
 
 /* Vagas validadas */
 const markersVagas = {};
@@ -108,14 +116,9 @@ onSnapshot(collection(db, "teste"), snap => {
   snap.forEach(docSnap => {
     const d = docSnap.data();
     if (d.status === "validado" && !markersVagas[docSnap.id]) {
-      const waze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
-
       markersVagas[docSnap.id] = L.marker(
         [d.latitude, d.longitude]
-      ).addTo(map).bindPopup(
-        `<p>Número: ${d.numero}</p>
-         <a href="${waze}" target="_blank">Abrir no Waze</a>`
-      );
+      ).addTo(map);
     }
   });
 });
