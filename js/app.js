@@ -124,20 +124,16 @@ onSnapshot(vagasRef, snapshot=>{
 
     if(d.status === "validado"){
       const wazeLink = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
+      const popupContent = `<p>Número: ${d.numero}</p>
+                            <a href="${wazeLink}" target="_blank">Abrir no Waze</a>`;
 
       if(markersVagas[id]){
         markersVagas[id].setLatLng([d.latitude,d.longitude]);
-        markersVagas[id].getPopup().setContent(
-          `<p>Número: ${d.numero}</p>
-           <a href="${wazeLink}" target="_blank">Abrir no Waze</a>`
-        );
+        markersVagas[id].bindPopup(popupContent); // Atualiza o popup corretamente
       } else {
-        markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
+        markersVagas[id] = L.marker([d.latitude,d.longitude], {icon: iconeMoto})
           .addTo(map)
-          .bindPopup(
-            `<p>Número: ${d.numero}</p>
-             <a href="${wazeLink}" target="_blank">Abrir no Waze</a>`
-          );
+          .bindPopup(popupContent);
       }
     }
   });
