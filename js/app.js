@@ -17,15 +17,15 @@ window.onload = function() {
   const marcadorUsuario = L.marker([0,0], {icon:iconeUsuario}).addTo(map);
 
   let posicaoAtual = null;
-  let primeiraLocalizacao = true;
 
+  // ===== Watch position =====
   if(navigator.geolocation){
     navigator.geolocation.watchPosition(pos=>{
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
       marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
-      if(primeiraLocalizacao){
+      // Ajusta a primeira visualização
+      if(map.getZoom() < 5){
         map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
-        primeiraLocalizacao=false;
       }
     }, err=>{
       console.error("Erro GPS:", err.message);
@@ -39,7 +39,6 @@ window.onload = function() {
   btnCentralizar.onclick = ()=>{
     if(posicaoAtual){
       map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
-      console.log("Mapa centralizado em:", posicaoAtual);
     } else {
       alert("Aguardando localização do GPS...");
     }
@@ -52,9 +51,10 @@ window.onload = function() {
       alert("Aguardando localização do GPS...");
       return;
     }
-    console.log("Adicionando marcador em:", posicaoAtual);
-    const novoMarcador = L.marker([posicaoAtual.lat,posicaoAtual.lng]).addTo(map);
-    novoMarcador.bindPopup("Marcador adicionado").openPopup();
+    // Adiciona marcador padrão Leaflet
+    L.marker([posicaoAtual.lat,posicaoAtual.lng])
+     .addTo(map)
+     .bindPopup("Marcador adicionado").openPopup();
   };
 
 };
