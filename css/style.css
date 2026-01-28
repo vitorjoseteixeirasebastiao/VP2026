@@ -1,16 +1,31 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 10px;
+/* FUNDAMENTAL */
+html, body {
+  height: 100%;
+  margin: 0;
 }
 
+/* Layout */
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Área superior */
+#topo {
+  padding: 10px;
+}
+
+/* Inputs e botões */
 input, button {
   width: 100%;
-  padding: 16px;
+  padding: 18px;
   margin-bottom: 10px;
   font-size: 20px;
   border-radius: 10px;
 }
 
+/* Botões */
 button {
   border: none;
   background: #007bff;
@@ -18,19 +33,20 @@ button {
   font-weight: bold;
 }
 
+/* Mensagens */
 #mensagens {
-  min-height: 32px;
+  min-height: 30px;
   font-size: 18px;
   font-weight: bold;
 }
 
+/* MAPA — ISSO É O SEGREDO */
 #map {
-  height: 75vh;
+  flex: 1;              /* ocupa o resto da tela */
   width: 100%;
-  border-radius: 12px;
 }
 
-/* 🔵 Ícone do usuário */
+/* Ícone do usuário */
 .usuario-icon div {
   width: 22px;
   height: 22px;
