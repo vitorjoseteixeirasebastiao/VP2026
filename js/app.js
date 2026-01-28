@@ -1,7 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { 
-  getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot 
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // ===== Config Firebase =====
 const firebaseConfig = {
@@ -12,6 +10,7 @@ const firebaseConfig = {
   messagingSenderId: "129557498750",
   appId: "1:129557498750:web:c2a510c04946583a17412f"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -33,33 +32,7 @@ function calcularDistancia(lat1, lon1, lat2, lon2){
   return R*c;
 }
 
-// ===== Inicializa mapa =====
-const map = L.map("map").setView([-23.5505,-46.6333],15);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-
-// ===== Marcadores =====
-const iconeMoto = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png", iconSize:[35,35], iconAnchor:[17,35] });
-const iconePendente = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/1946/1946429.png", iconSize:[30,30], iconAnchor:[15,30] });
-
-// Círculo azul para usuário
-const marcadorUsuario = L.circleMarker([0,0], {
-  radius: 14,
-  color: '#007bff',
-  fillColor: '#007bff',
-  fillOpacity: 0.6
-}).addTo(map);
-
-// Atualiza posição do usuário em tempo real
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition((pos)=>{
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-    marcadorUsuario.setLatLng([lat,lng]);
-    map.setView([lat,lng],16,{animate:true});
-  }, (err)=>{ console.log("Erro GPS:", err.message); }, { enableHighAccuracy:true, maximumAge:1000 });
-}
-
-// ===== Botão salvar =====
+// ===== Função salvar vaga =====
 async function salvarVaga(){
   const numero = document.getElementById("numero").value;
   if(!numero){ mostrarMensagem("Digite o número do local"); return; }
@@ -83,7 +56,10 @@ async function salvarVaga(){
             encontrouProximo = true;
             const novasConfirmacoes = (d.confirmations||1)+1;
             if(novasConfirmacoes >= 2){
-              await updateDoc(doc(db,"teste",docSnap.id), { confirmations: novasConfirmacoes, status: "validado" });
+              await updateDoc(doc(db,"teste",docSnap.id), {
+                confirmations: novasConfirmacoes,
+                status: "validado"
+              });
               mostrarMensagem("Vaga VALIDADA automaticamente!");
             } else {
               await updateDoc(doc(db,"teste",docSnap.id), { confirmations: novasConfirmacoes });
@@ -113,46 +89,50 @@ async function salvarVaga(){
       console.error(err);
     }
 
-  }, (err)=>{ mostrarMensagem("Erro GPS: "+err.message); }, { enableHighAccuracy:true });
+  },
+  (err)=>{ mostrarMensagem("Erro GPS: "+err.message); },
+  { enableHighAccuracy:true });
 }
 
-document.getElementById("btnSalvar").addEventListener("click", salvarVaga);
+// ===== Inicializa mapa =====
+const map = L.map("map").setView([-23.5505,-46.6333],13);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
 
-// ===== Marcadores =====
-const markersVagas = {};
+const iconeMoto = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png", iconSize:[35,35], iconAnchor:[17,35] });
+const iconeUsuario = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/64/64113.png", iconSize:[30,30], iconAnchor:[15,30] });
 
-// Função para criar ou atualizar marcador
-function criarOuAtualizarMarcador(id, d){
-  const urlWaze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
+const marcadorUsuario = L.marker([0,0],{icon:iconeUsuario}).addTo(map);
 
-  if(markersVagas[id]){
-    markersVagas[id].setLatLng([d.latitude,d.longitude]);
-    return;
-  }
-
-  if(d.status === "validado"){
-    markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
-      .addTo(map)
-      .bindPopup(`<p>Número: ${d.numero}</p>
-                  <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
-  } else {
-    markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconePendente})
-      .addTo(map)
-      .bindPopup(`<p>Número: ${d.numero} (pendente)</p>
-                  <a href="${urlWaze}" target="_blank">Abrir no Waze</a>`);
-  }
+// Atualiza posição do usuário em tempo real
+if(navigator.geolocation){
+  navigator.geolocation.watchPosition((pos)=>{
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    marcadorUsuario.setLatLng([lat,lng]);
+    map.setView([lat,lng],16,{animate:true});
+  }, (err)=>{ console.log("Erro GPS:", err.message); }, { enableHighAccuracy:true, maximumAge:1000 });
 }
 
-// ===== Carrega todos os documentos existentes =====
-async function carregarVagasIniciais(){
-  const snapshot = await getDocs(collection(db,"teste"));
-  snapshot.docs.forEach(docSnap => criarOuAtualizarMarcador(docSnap.id, docSnap.data()));
-}
-carregarVagasIniciais();
+// ===== Atualização em tempo real das vagas =====
+const markersVagas = {}; // Armazena marcadores já adicionados
+const vagasRef = collection(db,"teste");
 
-// ===== Atualização em tempo real =====
-onSnapshot(collection(db,"teste"), snapshot=>{
+onSnapshot(vagasRef, snapshot=>{
   snapshot.docChanges().forEach(change=>{
-    criarOuAtualizarMarcador(change.doc.id, change.doc.data());
+    const d = change.doc.data();
+    const id = change.doc.id;
+
+    if(d.status === "validado"){
+      if(markersVagas[id]){
+        markersVagas[id].setLatLng([d.latitude,d.longitude]);
+      } else {
+        markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
+          .addTo(map)
+          .bindPopup(`<p>Número: ${d.numero}</p>`);
+      }
+    }
   });
 });
+
+// ===== Botão salvar =====
+document.getElementById("btnSalvar").addEventListener("click", salvarVaga);
