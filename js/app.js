@@ -83,14 +83,8 @@ window.onload = function(){
     });
   };
 
-  // ===== Marcadores com ícone PNG público =====
+  // ===== Marcadores padrão =====
   const markers = {};
-  const iconeVaga = L.icon({
-    iconUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Blue_Parking_Sign.svg/64px-Blue_Parking_Sign.svg.png",
-    iconSize: [40,40],
-    iconAnchor: [20,40]
-  });
-
   onSnapshot(collection(db,"teste"), snapshot=>{
     snapshot.docs.forEach(docSnap=>{
       const v = docSnap.data();
@@ -100,7 +94,7 @@ window.onload = function(){
         markers[id].setLatLng([v.latitude,v.longitude])
                  .setPopupContent("<b>Número:</b> "+v.numero);
       } else {
-        markers[id] = L.marker([v.latitude,v.longitude], {icon:iconeVaga})
+        markers[id] = L.marker([v.latitude,v.longitude]) // padrão do Leaflet
                          .addTo(map)
                          .bindPopup("<b>Número:</b> "+v.numero);
       }
