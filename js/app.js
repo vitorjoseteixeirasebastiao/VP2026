@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-window.onload = function () {
+window.onload = function(){
 
   // ===== Firebase =====
   const firebaseConfig = {
@@ -28,7 +28,7 @@ window.onload = function () {
     attribution: "© OpenStreetMap"
   }).addTo(map);
 
-  // ===== Ícone do usuário =====
+  // ===== Ícone usuário =====
   const iconeUsuario = L.divIcon({
     className:"",
     html:'<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;box-shadow:0 0 6px rgba(0,123,255,.8);"></div>',
@@ -45,7 +45,7 @@ window.onload = function () {
     marcadorUsuario.setLatLng([lat,lng]);
     if(primeiraLocalizacao){
       map.setView([lat,lng],18);
-      primeiraLocalizacao=false;
+      primeiraLocalizacao = false;
     }
   },()=>mostrarMensagem("Erro GPS"), {enableHighAccuracy:true});
 
@@ -99,11 +99,9 @@ window.onload = function () {
       const id = docSnap.id;
 
       if(markers[id]){
-        // Atualiza marcador existente
         markers[id].setLatLng([v.latitude,v.longitude])
                  .setPopupContent("<b>Número:</b> "+v.numero);
       } else {
-        // Cria marcador novo
         markers[id] = L.marker([v.latitude,v.longitude], {icon:iconeVaga})
                          .addTo(map)
                          .bindPopup("<b>Número:</b> "+v.numero);
