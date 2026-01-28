@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa Vagas de Moto</title>
+<title>Mapa Usuário</title>
 
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -13,24 +13,14 @@
 </head>
 <body>
 
-<h2>Registrar Vaga de Moto</h2>
+<h2>Mapa Usuário</h2>
 
-<input type="number" id="numero" placeholder="Número do local">
-<button id="btnSalvar">Salvar vaga</button>
-
-<div style="display:flex; gap:5px; margin-bottom:10px;">
-  <input type="text" id="search" placeholder="Pesquisar endereço" style="flex:1">
-  <button id="btnBuscar">Buscar</button>
-  <button id="btnLocalizacao">Minha localização</button>
-</div>
-
-<div id="mensagens"></div>
 <div id="map"></div>
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Firebase modular v9 -->
+<!-- JS -->
 <script type="module" src="js/app.js"></script>
 
 </body>
