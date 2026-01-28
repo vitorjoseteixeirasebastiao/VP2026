@@ -26,3 +26,12 @@ body, html {
 .map-button:hover {
   background: #f0f0f0;
 }
+
+/* Separação dos botões */
+#btnCentralizar {
+  top: 10px;
+}
+
+#btnMarcador {
+  top: 60px; /* distância do botão centralizar */
+}
