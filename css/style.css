@@ -1,21 +1,13 @@
-body, html {
-  margin:0;
-  padding:0;
-  height:100%;
-}
-
 #map {
-  width:100%;
-  height:100vh;
-  position: relative;
+  width: 100%;
+  height: 100vh;
 }
 
-/* Botão sobre o mapa */
 .map-button {
   position: absolute;
   right: 10px;
   top: 10px;
-  z-index: 10000; /* garante que fique sobre o mapa */
+  z-index: 10000;
   background: white;
   border: none;
   padding: 10px 14px;
