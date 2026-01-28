@@ -21,48 +21,46 @@ function mostrarMensagem(msg) {
   setTimeout(() => el.innerText = "", 4000);
 }
 
-let map;
-let marcadorUsuario;
+/* 🗺️ MAPA — inicia genérico */
+const map = L.map("map").setView([0, 0], 2);
 
-/* 🚀 INICIALIZAÇÃO PELO GPS */
-navigator.geolocation.getCurrentPosition(
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap"
+}).addTo(map);
+
+/* 🔵 Usuário = círculo azul */
+const marcadorUsuario = L.circleMarker([0, 0], {
+  radius: 10,
+  fillColor: "#1e90ff",
+  color: "#ffffff",
+  weight: 3,
+  fillOpacity: 1
+}).addTo(map);
+
+let mapaCentralizado = false;
+
+/* 📍 GPS em tempo real */
+navigator.geolocation.watchPosition(
   pos => {
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
 
-    /* MAPA inicia na localização do usuário */
-    map = L.map("map").setView([lat, lng], 18);
+    marcadorUsuario.setLatLng([lat, lng]);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap"
-    }).addTo(map);
-
-    /* 🔵 Usuário = círculo azul */
-    marcadorUsuario = L.circleMarker([lat, lng], {
-      radius: 10,
-      fillColor: "#1e90ff",
-      color: "#ffffff",
-      weight: 3,
-      fillOpacity: 1
-    }).addTo(map);
-
-    /* Atualização em tempo real (sem travar o mapa) */
-    navigator.geolocation.watchPosition(pos => {
-      marcadorUsuario.setLatLng([
-        pos.coords.latitude,
-        pos.coords.longitude
-      ]);
-    });
-
+    /* 🔥 CENTRALIZA APENAS NA PRIMEIRA LEITURA */
+    if (!mapaCentralizado) {
+      map.setView([lat, lng], 18);
+      mapaCentralizado = true;
+    }
   },
   err => {
     console.error(err);
-    mostrarMensagem("Erro ao obter localização");
+    mostrarMensagem("Erro ao acessar GPS");
   },
   { enableHighAccuracy: true }
 );
 
-/* 📍 Botão centralizar */
+/* 📍 Botão centralizar manual */
 document.getElementById("btnLocalizacao").onclick = () => {
   navigator.geolocation.getCurrentPosition(pos => {
     map.setView(
@@ -105,6 +103,7 @@ document.getElementById("btnSalvar").onclick = () => {
       confirmations: 1,
       data: new Date()
     });
+
     mostrarMensagem("Vaga criada");
     document.getElementById("numero").value = "";
   });
