@@ -39,6 +39,9 @@ window.onload = function() {
   btnCentralizar.onclick = ()=>{
     if(posicaoAtual){
       map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+      console.log("Mapa centralizado em:", posicaoAtual);
+    } else {
+      alert("Aguardando localização do GPS...");
     }
   };
 
@@ -49,8 +52,9 @@ window.onload = function() {
       alert("Aguardando localização do GPS...");
       return;
     }
-    L.marker([posicaoAtual.lat,posicaoAtual.lng]).addTo(map)
-     .bindPopup("Marcador adicionado").openPopup();
+    console.log("Adicionando marcador em:", posicaoAtual);
+    const novoMarcador = L.marker([posicaoAtual.lat,posicaoAtual.lng]).addTo(map);
+    novoMarcador.bindPopup("Marcador adicionado").openPopup();
   };
 
 };
