@@ -1,4 +1,25 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
 window.onload = function() {
+
+  // ===== Firebase =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
+    authDomain: "vpm2026-8167b.firebaseapp.com",
+    projectId: "vpm2026-8167b",
+    storageBucket: "vpm2026-8167b.appspot.com",
+    messagingSenderId: "129557498750",
+    appId: "1:129557498750:web:c2a510c04946583a17412f"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  function mostrarMensagem(msg){
+    const div = document.getElementById("mensagens");
+    div.innerText = msg;
+    setTimeout(()=>{ div.innerText=""; },3000);
+  }
 
   // ===== Inicializa mapa =====
   const map = L.map("map").setView([0,0], 15);
@@ -18,7 +39,7 @@ window.onload = function() {
   const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
 
   let primeiraLocalizacao = true;
-  let posicaoAtual = null; // null até receber GPS real
+  let posicaoAtual = null;
 
   // ===== Atualiza localização do usuário =====
   if(navigator.geolocation){
@@ -43,9 +64,9 @@ window.onload = function() {
     alert("GPS não disponível");
   }
 
-  // ===== Botão adicionar marcador na posição atual =====
+  // ===== Botão adicionar marcador na posição atual e salvar no Firebase =====
   const btn = document.getElementById("btnMarcador");
-  btn.disabled = true; // desabilitado até receber posição
+  btn.disabled = true;
 
   const habilitarBotao = setInterval(()=>{
     if(posicaoAtual){
@@ -54,11 +75,25 @@ window.onload = function() {
     }
   }, 100);
 
-  btn.onclick = ()=>{
+  btn.onclick = async ()=>{
     if(posicaoAtual){
+      // Adiciona marcador no mapa
       L.marker([posicaoAtual.lat, posicaoAtual.lng])
         .addTo(map)
         .bindPopup("Marcador na posição atual").openPopup();
+
+      // Salva no Firebase
+      try {
+        await addDoc(collection(db,"teste"),{
+          latitude: posicaoAtual.lat,
+          longitude: posicaoAtual.lng,
+          data: new Date()
+        });
+        mostrarMensagem("Marcador salvo no Firebase!");
+      } catch(err){
+        console.error("Erro ao salvar:", err);
+        mostrarMensagem("Erro ao salvar no Firebase");
+      }
     }
   }
 
