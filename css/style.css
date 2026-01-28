@@ -26,6 +26,15 @@ button:hover {
   background: #0056b3;
 }
 
+#mensagens {
+  text-align: center;
+  font-size: 18px;
+  min-height: 30px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
 #map {
   height: 85vh;
   width: 100%;
