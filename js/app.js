@@ -17,60 +17,60 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* Mensagens */
-function mostrarMensagem(texto) {
+/* Util */
+function mostrarMensagem(texto){
   const div = document.getElementById("mensagens");
   div.innerText = texto;
-  setTimeout(() => div.innerText = "", 4000);
+  setTimeout(()=>{ div.innerText=""; },4000);
 }
 
-/* Distância */
-function calcularDistancia(lat1, lon1, lat2, lon2) {
+function calcularDistancia(lat1, lon1, lat2, lon2){
   const R = 6371e3;
-  const φ1 = lat1 * Math.PI / 180;
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(Δφ / 2) ** 2 +
-    Math.cos(φ1) * Math.cos(φ2) *
-    Math.sin(Δλ / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const φ1 = lat1*Math.PI/180;
+  const φ2 = lat2*Math.PI/180;
+  const Δφ = (lat2-lat1)*Math.PI/180;
+  const Δλ = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(Δφ/2)**2 +
+            Math.cos(φ1)*Math.cos(φ2)*
+            Math.sin(Δλ/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 /* Mapa */
-const map = L.map("map").setView([-23.5505, -46.6333], 16);
+const map = L.map("map").setView([-23.5505,-46.6333],16);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap"
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  attribution:"© OpenStreetMap"
 }).addTo(map);
 
 /* Ícones */
-const iconeMoto = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-  iconSize: [35, 35],
-  iconAnchor: [17, 35]
+const iconeVaga = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/1483/1483336.png",
+  iconSize: [36, 36],
+  iconAnchor: [18, 36]
 });
 
-const iconeUsuario = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/64/64113.png",
-  iconSize: [30, 30],
-  iconAnchor: [15, 30]
+const iconeUsuario = L.divIcon({
+  className: "usuario-icon",
+  iconSize: [22, 22],
+  iconAnchor: [11, 11]
 });
 
 /* Usuário */
-const marcadorUsuario = L.marker([0, 0], { icon: iconeUsuario }).addTo(map);
+const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
 
-navigator.geolocation.watchPosition(pos => {
-  marcadorUsuario.setLatLng([
-    pos.coords.latitude,
-    pos.coords.longitude
-  ]);
-});
+if(navigator.geolocation){
+  navigator.geolocation.watchPosition(pos=>{
+    marcadorUsuario.setLatLng([
+      pos.coords.latitude,
+      pos.coords.longitude
+    ]);
+  });
+}
 
-/* 📍 Botão centralizar */
-document.getElementById("btnLocalizacao").onclick = () => {
-  navigator.geolocation.getCurrentPosition(pos => {
+/* Botão Minha localização */
+document.getElementById("btnLocalizacao").onclick = ()=>{
+  navigator.geolocation.getCurrentPosition(pos=>{
     map.setView(
       [pos.coords.latitude, pos.coords.longitude],
       18
@@ -78,57 +78,121 @@ document.getElementById("btnLocalizacao").onclick = () => {
   });
 };
 
-/* 🔍 Pesquisa endereço */
-document.getElementById("search").addEventListener("keydown", async e => {
-  if (e.key === "Enter") {
-    const q = e.target.value;
+/* Pesquisa endereço */
+async function pesquisarEndereco(){
+  const q = document.getElementById("search").value;
+  if(!q){ mostrarMensagem("Digite um endereço"); return; }
+
+  try{
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${q}`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`
     );
     const data = await res.json();
-    if (data[0]) {
-      map.setView([data[0].lat, data[0].lon], 18);
+
+    if(!data.length){
+      mostrarMensagem("Endereço não encontrado");
+      return;
     }
+
+    map.setView([data[0].lat, data[0].lon], 18);
+  }catch(err){
+    mostrarMensagem("Erro na pesquisa");
   }
-});
+}
+
+document.getElementById("btnPesquisar")
+  .addEventListener("click", pesquisarEndereco);
+
+document.getElementById("search")
+  .addEventListener("keydown", e=>{
+    if(e.key === "Enter") pesquisarEndereco();
+  });
 
 /* Salvar vaga */
-async function salvarVaga() {
+async function salvarVaga(){
   const numero = document.getElementById("numero").value;
-  if (!numero) return mostrarMensagem("Digite o número");
+  if(!numero){ mostrarMensagem("Digite o número do local"); return; }
 
-  navigator.geolocation.getCurrentPosition(async pos => {
-    await addDoc(collection(db, "teste"), {
-      numero,
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      status: "pendente",
-      confirmations: 1,
-      data: new Date()
-    });
-    mostrarMensagem("Vaga criada");
-    document.getElementById("numero").value = "";
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+
+    try{
+      const snapshot = await getDocs(collection(db,"teste"));
+      let encontrouProximo = false;
+
+      for(const docSnap of snapshot.docs){
+        const d = docSnap.data();
+        if(d.status === "pendente"){
+          const dist = calcularDistancia(lat,lng,d.latitude,d.longitude);
+          if(dist <= 10){
+            encontrouProximo = true;
+            const novas = (d.confirmations||1)+1;
+            if(novas >= 2){
+              await updateDoc(doc(db,"teste",docSnap.id),{
+                confirmations:novas,
+                status:"validado"
+              });
+              mostrarMensagem("Vaga VALIDADA!");
+            }else{
+              await updateDoc(doc(db,"teste",docSnap.id),{
+                confirmations:novas
+              });
+              mostrarMensagem("Confirmação registrada!");
+            }
+            break;
+          }
+        }
+      }
+
+      if(!encontrouProximo){
+        await addDoc(collection(db,"teste"),{
+          numero,
+          latitude:lat,
+          longitude:lng,
+          status:"pendente",
+          confirmations:1,
+          data:new Date()
+        });
+        mostrarMensagem("Vaga pendente criada!");
+      }
+
+      document.getElementById("numero").value = "";
+    }catch(err){
+      mostrarMensagem("Erro Firebase");
+    }
   });
 }
 
-document.getElementById("btnSalvar").onclick = salvarVaga;
+document.getElementById("btnSalvar")
+  .addEventListener("click", salvarVaga);
 
-/* Vagas validadas */
+/* Vagas em tempo real */
 const markersVagas = {};
-const vagasRef = collection(db, "teste");
+const vagasRef = collection(db,"teste");
 
-onSnapshot(vagasRef, snap => {
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
-    if (d.status === "validado" && !markersVagas[docSnap.id]) {
-      const waze = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
-      markersVagas[docSnap.id] = L.marker(
-        [d.latitude, d.longitude],
-        { icon: iconeMoto }
-      ).addTo(map).bindPopup(
+onSnapshot(vagasRef, snapshot=>{
+  snapshot.docChanges().forEach(change=>{
+    const d = change.doc.data();
+    const id = change.doc.id;
+
+    if(d.status === "validado"){
+      const waze =
+        `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
+
+      const popup =
         `<p>Número: ${d.numero}</p>
-         <a href="${waze}" target="_blank">Abrir no Waze</a>`
-      );
+         <a href="${waze}" target="_blank">Abrir no Waze</a>`;
+
+      if(markersVagas[id]){
+        markersVagas[id].setLatLng([d.latitude,d.longitude]);
+        markersVagas[id].bindPopup(popup);
+      }else{
+        markersVagas[id] = L.marker(
+          [d.latitude,d.longitude],
+          { icon: iconeVaga }
+        ).addTo(map).bindPopup(popup);
+      }
     }
   });
 });
