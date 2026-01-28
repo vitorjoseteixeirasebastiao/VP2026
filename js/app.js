@@ -32,18 +32,37 @@ async function salvarMarcador(lat, lng, titulo="Marcador") {
   }
 }
 
-async function carregarMarcadores() {
+// ===== Função de geocoding reverso (lat/lng -> endereço) =====
+async function obterEndereco(lat, lng) {
   try {
-    const querySnapshot = await getDocs(collection(db, colecaoMarcadores));
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      L.marker([data.latitude, data.longitude])
-        .addTo(map)
-        .bindPopup(data.titulo);
-    });
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.display_name || "Endereço não encontrado";
   } catch (error) {
-    console.error("Erro ao carregar marcadores:", error);
+    console.error("Erro ao obter endereço:", error);
+    return "Endereço não encontrado";
   }
+}
+
+// ===== Função para criar marcador com popup de endereço e link para Waze =====
+async function criarMarcador(lat, lng, titulo="Marcador") {
+  const endereco = await obterEndereco(lat, lng);
+  const linkWaze = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+  
+  const popupContent = `
+    <b>${titulo}</b><br>
+    ${endereco}<br>
+    <a href="${linkWaze}" target="_blank">Abrir no Waze</a>
+  `;
+  
+  // Adiciona marcador no mapa
+  L.marker([lat, lng]).addTo(map)
+    .bindPopup(popupContent)
+    .openPopup();
+  
+  // Salva no Firebase
+  salvarMarcador(lat, lng, titulo);
 }
 
 // ===== Inicializa Mapa =====
@@ -59,7 +78,6 @@ const iconeUsuario = L.divIcon({
   iconSize:[16,16],
   iconAnchor:[8,8]
 });
-
 const marcadorUsuario = L.marker([0,0], {icon:iconeUsuario}).addTo(map);
 
 let posicaoAtual = null;
@@ -94,9 +112,7 @@ const btnAdicionarMarcador = document.getElementById("btnAdicionarMarcador");
 btnAdicionarMarcador.onclick = ()=>{
   if(posicaoAtual){
     const {lat, lng} = posicaoAtual;
-    L.marker([lat, lng]).addTo(map)
-      .bindPopup("Marcador do Usuário").openPopup();
-    salvarMarcador(lat, lng, "Marcador do Usuário");
+    criarMarcador(lat, lng, "Marcador do Usuário");
   } else {
     alert("Localização não disponível ainda.");
   }
@@ -105,10 +121,30 @@ btnAdicionarMarcador.onclick = ()=>{
 // ===== Clique no mapa para adicionar marcador manualmente =====
 map.on("click", (e)=>{
   const {lat, lng} = e.latlng;
-  L.marker([lat, lng]).addTo(map)
-    .bindPopup("Marcador");
-  salvarMarcador(lat, lng);
+  criarMarcador(lat, lng, "Marcador");
 });
 
-// ===== Carrega marcadores salvos =====
+// ===== Carrega marcadores salvos do Firebase =====
+async function carregarMarcadores() {
+  try {
+    const querySnapshot = await getDocs(collection(db, colecaoMarcadores));
+    for (const doc of querySnapshot.docs) {
+      const data = doc.data();
+      const endereco = await obterEndereco(data.latitude, data.longitude);
+      const linkWaze = `https://waze.com/ul?ll=${data.latitude},${data.longitude}&navigate=yes`;
+      const popupContent = `
+        <b>${data.titulo}</b><br>
+        ${endereco}<br>
+        <a href="${linkWaze}" target="_blank">Abrir no Waze</a>
+      `;
+      L.marker([data.latitude, data.longitude])
+        .addTo(map)
+        .bindPopup(popupContent);
+    }
+  } catch (error) {
+    console.error("Erro ao carregar marcadores:", error);
+  }
+}
+
+// ===== Inicializa carregamento =====
 carregarMarcadores();
