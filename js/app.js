@@ -12,7 +12,6 @@ window.onload = function(){
     messagingSenderId: "129557498750",
     appId: "1:129557498750:web:c2a510c04946583a17412f"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
@@ -45,7 +44,7 @@ window.onload = function(){
     marcadorUsuario.setLatLng([lat,lng]);
     if(primeiraLocalizacao){
       map.setView([lat,lng],18);
-      primeiraLocalizacao = false;
+      primeiraLocalizacao=false;
     }
   },()=>mostrarMensagem("Erro GPS"), {enableHighAccuracy:true});
 
@@ -84,11 +83,11 @@ window.onload = function(){
     });
   };
 
-  // ===== Ícone marcador =====
+  // ===== Ícone marcador (funcional) =====
   const iconeVaga = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png",
-    iconSize:[35,35],
-    iconAnchor:[17,35]
+    iconUrl: "https://raw.githubusercontent.com/google/material-design-icons/master/maps/2x_web/ic_local_parking_black_48dp.png",
+    iconSize: [40,40],
+    iconAnchor: [20,40]
   });
 
   // ===== Marcadores =====
