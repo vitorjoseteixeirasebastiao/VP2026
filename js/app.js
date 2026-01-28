@@ -15,9 +15,7 @@ window.onload = function () {
   function mostrarMensagem(msg) {
     var div = document.getElementById("mensagens");
     div.innerText = msg;
-    setTimeout(function () {
-      div.innerText = "";
-    }, 3000);
+    setTimeout(function () { div.innerText = ""; }, 3000);
   }
 
   /* ===== MAPA ===== */
@@ -30,58 +28,60 @@ window.onload = function () {
   /* ===== ÍCONE USUÁRIO ===== */
   var iconeUsuario = L.divIcon({
     className: "",
-    html:
-      '<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;box-shadow:0 0 6px rgba(0,123,255,.8);"></div>',
-    iconSize: [16, 16],
-    iconAnchor: [8, 8]
+    html: '<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;box-shadow:0 0 6px rgba(0,123,255,.8);"></div>',
+    iconSize: [16,16],
+    iconAnchor: [8,8]
   });
 
-  var marcadorUsuario = L.marker([0, 0], { icon: iconeUsuario }).addTo(map);
+  var marcadorUsuario = L.marker([0,0], {icon: iconeUsuario}).addTo(map);
 
   var primeiraLocalizacao = true;
 
   navigator.geolocation.watchPosition(
-    function (pos) {
+    function(pos){
       var lat = pos.coords.latitude;
       var lng = pos.coords.longitude;
 
-      marcadorUsuario.setLatLng([lat, lng]);
+      marcadorUsuario.setLatLng([lat,lng]);
 
-      if (primeiraLocalizacao) {
-        map.setView([lat, lng], 18);
+      if(primeiraLocalizacao){
+        map.setView([lat,lng],18);
         primeiraLocalizacao = false;
       }
     },
-    function () {
+    function(){
       mostrarMensagem("Erro GPS");
     },
-    { enableHighAccuracy: true }
+    {enableHighAccuracy:true}
   );
 
-  document.getElementById("btnLocalizacao").onclick = function () {
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      map.setView([pos.coords.latitude, pos.coords.longitude], 18);
+  /* ===== BOTÃO LOCALIZAR ===== */
+  document.getElementById("btnLocalizacao").onclick = function(){
+    navigator.geolocation.getCurrentPosition(function(pos){
+      map.setView([pos.coords.latitude, pos.coords.longitude],18);
     });
   };
 
-  document.getElementById("btnBuscar").onclick = function () {
+  /* ===== PESQUISA ===== */
+  document.getElementById("btnBuscar").onclick = function(){
     var q = document.getElementById("search").value;
-    if (!q) return;
+    if(!q) return;
 
     fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(q))
       .then(res => res.json())
       .then(data => {
-        if (data[0]) {
-          map.setView([data[0].lat, data[0].lon], 18);
+        if(data[0]){
+          map.setView([data[0].lat, data[0].lon],18);
         }
       });
   };
 
-  document.getElementById("btnSalvar").onclick = function () {
+  /* ===== SALVAR VAGA ===== */
+  document.getElementById("btnSalvar").onclick = function(){
     var numero = document.getElementById("numero").value;
-    if (!numero) return mostrarMensagem("Digite o número");
+    if(!numero) return mostrarMensagem("Digite o número");
 
-    navigator.geolocation.getCurrentPosition(function (pos) {
+    navigator.geolocation.getCurrentPosition(function(pos){
       db.collection("teste").add({
         numero: numero,
         latitude: pos.coords.latitude,
@@ -89,23 +89,32 @@ window.onload = function () {
         status: "pendente",
         data: new Date()
       });
-
       mostrarMensagem("Vaga criada");
       document.getElementById("numero").value = "";
     });
   };
 
+  /* ===== ÍCONE DO MARCADOR ===== */
+  var iconeVaga = L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png", // ícone de placa de estacionamento
+    iconSize: [35,35],
+    iconAnchor: [17,35]
+  });
+
+  /* ===== MARCADORES ===== */
   var markers = {};
 
-  db.collection("teste").onSnapshot(function (snapshot) {
-    snapshot.forEach(function (doc) {
-      if (markers[doc.id]) return;
-
+  db.collection("teste").onSnapshot(function(snapshot){
+    snapshot.docChanges().forEach(function(change){
+      var doc = change.doc;
       var v = doc.data();
+      var id = doc.id;
 
-      markers[doc.id] = L.marker([v.latitude, v.longitude])
+      if(markers[id]) return; // já existe
+
+      markers[id] = L.marker([v.latitude,v.longitude], {icon: iconeVaga})
         .addTo(map)
-        .bindPopup("<b>Número:</b> " + v.numero);
+        .bindPopup("<b>Número:</b> " + v.numero + "<br>Status: " + v.status);
     });
   });
 
