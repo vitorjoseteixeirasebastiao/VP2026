@@ -76,7 +76,7 @@ window.onload = function () {
       });
   };
 
-  /* ===== SALVAR VAGA ===== */
+  /* ===== SALVAR VAGA (SIMPLIFICADO) ===== */
   document.getElementById("btnSalvar").onclick = function(){
     var numero = document.getElementById("numero").value;
     if(!numero) return mostrarMensagem("Digite o número");
@@ -86,7 +86,6 @@ window.onload = function () {
         numero: numero,
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
-        status: "pendente",
         data: new Date()
       });
       mostrarMensagem("Vaga criada");
@@ -96,7 +95,7 @@ window.onload = function () {
 
   /* ===== ÍCONE DO MARCADOR ===== */
   var iconeVaga = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png", // ícone de placa
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png", // placa de estacionamento
     iconSize: [35,35],
     iconAnchor: [17,35]
   });
@@ -112,14 +111,14 @@ window.onload = function () {
       // Se já existe, atualiza popup
       if(markers[id]){
         markers[id].setLatLng([v.latitude,v.longitude])
-                  .setPopupContent("<b>Número:</b> " + v.numero + "<br>Status: " + v.status);
+                  .setPopupContent("<b>Número:</b> " + v.numero);
         return;
       }
 
-      // Cria novo marcador
+      // Cria novo marcador direto, sem validação
       markers[id] = L.marker([v.latitude,v.longitude], {icon: iconeVaga})
         .addTo(map)
-        .bindPopup("<b>Número:</b> " + v.numero + "<br>Status: " + v.status);
+        .bindPopup("<b>Número:</b> " + v.numero);
     });
   });
 
