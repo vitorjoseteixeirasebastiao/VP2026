@@ -1,7 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import {
+  getFirestore, collection, addDoc, onSnapshot
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-/* ================= FIREBASE ================= */
+/* ===== FIREBASE ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -11,94 +13,96 @@ const firebaseConfig = {
   appId: "1:129557498750:web:c2a510c04946583a17412f"
 };
 
-initializeApp(firebaseConfig);
-const db = getFirestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-/* ================= MENSAGENS ================= */
+/* ===== MENSAGENS ===== */
 function mostrarMensagem(msg) {
-  const el = document.getElementById("mensagens");
-  el.innerText = msg;
-  setTimeout(() => el.innerText = "", 4000);
+  const div = document.getElementById("mensagens");
+  div.innerText = msg;
+  setTimeout(() => div.innerText = "", 4000);
 }
 
-/* ================= MAPA ================= */
-const map = L.map("map");
+/* ===== MAPA ===== */
+const map = L.map("map").setView([-23.5505, -46.6333], 15);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-/* ================= USUÁRIO (CÍRCULO AZUL) ================= */
-const marcadorUsuario = L.circleMarker([0, 0], {
-  radius: 10,
-  fillColor: "#1e90ff",
-  color: "#ffffff",
-  weight: 3,
-  fillOpacity: 1
+/* ===== ÍCONE USUÁRIO (CÍRCULO AZUL) ===== */
+const iconeUsuario = L.divIcon({
+  className: "",
+  html: `
+    <div style="
+      width:18px;
+      height:18px;
+      background:#007bff;
+      border:3px solid white;
+      border-radius:50%;
+      box-shadow:0 0 8px rgba(0,123,255,.9);
+    "></div>
+  `,
+  iconSize: [18,18],
+  iconAnchor: [9,9]
+});
+
+const marcadorUsuario = L.marker([0,0], {
+  icon: iconeUsuario
 }).addTo(map);
 
-/* ================= LOCALIZAÇÃO INICIAL ================= */
-// Centraliza o mapa APENAS UMA VEZ
-map.locate({
-  setView: true,
-  maxZoom: 18,
-  enableHighAccuracy: true
-});
+/* ===== GPS ===== */
+let primeiraLocalizacao = true;
 
-// Quando encontrar a localização inicial
-map.on("locationfound", e => {
-  marcadorUsuario.setLatLng(e.latlng);
-});
-
-// Erro de localização
-map.on("locationerror", () => {
-  mostrarMensagem("Erro ao acessar GPS");
-  map.setView([-23.5505, -46.6333], 13);
-});
-
-/* ================= ATUALIZAÇÃO EM TEMPO REAL ================= */
-// Atualiza SOMENTE o ícone (não move o mapa)
 navigator.geolocation.watchPosition(
   pos => {
-    marcadorUsuario.setLatLng([
-      pos.coords.latitude,
-      pos.coords.longitude
-    ]);
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+
+    marcadorUsuario.setLatLng([lat, lng]);
+
+    if (primeiraLocalizacao) {
+      map.setView([lat, lng], 18);
+      primeiraLocalizacao = false;
+    }
   },
-  err => console.error("Erro GPS:", err),
+  err => console.error(err),
   { enableHighAccuracy: true }
 );
 
-/* ================= BOTÃO CENTRALIZAR ================= */
+/* ===== BOTÃO CENTRALIZAR ===== */
 document.getElementById("btnLocalizacao").onclick = () => {
-  map.locate({
-    setView: true,
-    maxZoom: 18,
-    enableHighAccuracy: true
+  navigator.geolocation.getCurrentPosition(pos => {
+    map.setView(
+      [pos.coords.latitude, pos.coords.longitude],
+      18,
+      { animate: true }
+    );
   });
 };
 
-/* ================= PESQUISA DE ENDEREÇO ================= */
-document.getElementById("search").addEventListener("keydown", async e => {
-  if (e.key === "Enter") {
-    const q = e.target.value;
-    if (!q) return;
+/* ===== PESQUISA ENDEREÇO ===== */
+async function buscarEndereco() {
+  const q = document.getElementById("search").value;
+  if (!q) return;
 
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`
-    );
-    const data = await res.json();
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${q}`
+  );
+  const data = await res.json();
 
-    if (data[0]) {
-      map.setView([data[0].lat, data[0].lon], 18);
-    } else {
-      mostrarMensagem("Endereço não encontrado");
-    }
+  if (data[0]) {
+    map.setView([data[0].lat, data[0].lon], 18);
   }
-});
+}
 
-/* ================= SALVAR VAGA ================= */
-document.getElementById("btnSalvar").onclick = () => {
+document.getElementById("btnBuscar").onclick = buscarEndereco;
+document.getElementById("btnLimpar").onclick = () => {
+  document.getElementById("search").value = "";
+};
+
+/* ===== SALVAR VAGA ===== */
+document.getElementById("btnSalvar").onclick = async () => {
   const numero = document.getElementById("numero").value;
   if (!numero) return mostrarMensagem("Digite o número");
 
@@ -111,22 +115,20 @@ document.getElementById("btnSalvar").onclick = () => {
       confirmations: 1,
       data: new Date()
     });
-
     mostrarMensagem("Vaga criada");
     document.getElementById("numero").value = "";
   });
 };
 
-/* ================= VAGAS VALIDADAS ================= */
-const markersVagas = {};
+/* ===== VAGAS VALIDAS ===== */
+const markers = {};
 onSnapshot(collection(db, "teste"), snap => {
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
-
-    if (d.status === "validado" && !markersVagas[docSnap.id]) {
-      markersVagas[docSnap.id] = L.marker(
-        [d.latitude, d.longitude]
-      ).addTo(map);
+  snap.forEach(d => {
+    const v = d.data();
+    if (v.status === "validado" && !markers[d.id]) {
+      markers[d.id] = L.marker([v.latitude, v.longitude])
+        .addTo(map)
+        .bindPopup(`Número: ${v.numero}`);
     }
   });
 });
