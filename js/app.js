@@ -19,6 +19,7 @@ window.onload = async function() {
     setTimeout(()=> div.innerText="", 3000);
   }
 
+  // ===== Mapa =====
   const map = L.map("map").setView([0,0], 15);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
@@ -36,6 +37,7 @@ window.onload = async function() {
   let posicaoAtual = null;
   let primeiraLocalizacao = true;
 
+  // ===== Atualiza posição do usuário =====
   if(navigator.geolocation){
     navigator.geolocation.watchPosition(pos=>{
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
@@ -49,10 +51,8 @@ window.onload = async function() {
     }, {enableHighAccuracy:true});
   }
 
-  // Botão adicionar marcador
   const btnMarcador = document.getElementById("btnMarcador");
   btnMarcador.disabled = true;
-
   const habilitarBtn = setInterval(()=>{
     if(posicaoAtual){
       btnMarcador.disabled = false;
@@ -60,7 +60,7 @@ window.onload = async function() {
     }
   },100);
 
-  // ===== Armazena marcadores do Firebase =====
+  // ===== Marcadores Firebase =====
   const markers = {};
   const colRef = collection(db,"teste");
 
@@ -69,10 +69,8 @@ window.onload = async function() {
   docsExistentes.forEach(docSnap=>{
     const id = docSnap.id;
     const data = docSnap.data();
-    if(!markers[id]){
-      markers[id] = L.marker([data.latitude,data.longitude]).addTo(map)
-                       .bindPopup("Marcador existente");
-    }
+    markers[id] = L.marker([data.latitude,data.longitude]).addTo(map)
+                    .bindPopup("Marcador existente");
   });
 
   // Atualização em tempo real
@@ -80,21 +78,22 @@ window.onload = async function() {
     snapshot.docChanges().forEach(change=>{
       const id = change.doc.id;
       const data = change.doc.data();
-      if(change.type === "added" && !markers[id]){
-        markers[id] = L.marker([data.latitude,data.longitude])
-                        .addTo(map)
+      if(change.type==="added" && !markers[id]){
+        markers[id] = L.marker([data.latitude,data.longitude]).addTo(map)
                         .bindPopup("Marcador existente");
       }
     });
   });
 
-  // Adiciona novo marcador
+  // ===== Botão adicionar marcador =====
   btnMarcador.onclick = async ()=>{
     if(!posicaoAtual) return;
-    const novo = {latitude: posicaoAtual.lat, longitude: posicaoAtual.lng, data: new Date()};
-
     try{
-      const docRef = await addDoc(colRef, novo);
+      await addDoc(colRef,{
+        latitude: posicaoAtual.lat,
+        longitude: posicaoAtual.lng,
+        data: new Date()
+      });
       mostrarMensagem("Marcador salvo!");
     } catch(err){
       console.error(err);
@@ -102,10 +101,8 @@ window.onload = async function() {
     }
   };
 
-  // Botão centralizar
+  // ===== Botão centralizar =====
   document.getElementById("btnCentralizar").onclick = ()=>{
-    if(posicaoAtual){
-      map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
-    }
+    if(posicaoAtual) map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
   };
 };
