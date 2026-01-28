@@ -27,7 +27,7 @@ window.onload = function(){
     attribution: "© OpenStreetMap"
   }).addTo(map);
 
-  // ===== Ícone usuário =====
+  // ===== Ícone do usuário =====
   const iconeUsuario = L.divIcon({
     className:"",
     html:'<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;box-shadow:0 0 6px rgba(0,123,255,.8);"></div>',
@@ -83,19 +83,21 @@ window.onload = function(){
     });
   };
 
-  // ===== Ícone marcador (funcional) =====
-  const iconeVaga = L.icon({
-    iconUrl: "https://raw.githubusercontent.com/google/material-design-icons/master/maps/2x_web/ic_local_parking_black_48dp.png",
-    iconSize: [40,40],
-    iconAnchor: [20,40]
-  });
-
-  // ===== Marcadores =====
+  // ===== Marcadores estilo DivIcon (placa de estacionamento) =====
   const markers = {};
   onSnapshot(collection(db,"teste"), snapshot=>{
     snapshot.docs.forEach(docSnap=>{
       const v = docSnap.data();
       const id = docSnap.id;
+
+      const iconeVaga = L.divIcon({
+        className:"",
+        html: `<div style="width:28px;height:28px;background:#ff5722;color:white;font-weight:bold;
+                text-align:center;line-height:28px;border-radius:4px;border:2px solid white;
+                box-shadow:0 0 4px rgba(0,0,0,0.5);">P</div>`,
+        iconSize:[28,28],
+        iconAnchor:[14,28]
+      });
 
       if(markers[id]){
         markers[id].setLatLng([v.latitude,v.longitude])
