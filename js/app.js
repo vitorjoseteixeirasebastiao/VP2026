@@ -83,21 +83,18 @@ window.onload = function(){
     });
   };
 
-  // ===== Marcadores estilo DivIcon (placa de estacionamento) =====
+  // ===== Marcadores com ícone PNG público =====
   const markers = {};
+  const iconeVaga = L.icon({
+    iconUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Blue_Parking_Sign.svg/64px-Blue_Parking_Sign.svg.png",
+    iconSize: [40,40],
+    iconAnchor: [20,40]
+  });
+
   onSnapshot(collection(db,"teste"), snapshot=>{
     snapshot.docs.forEach(docSnap=>{
       const v = docSnap.data();
       const id = docSnap.id;
-
-      const iconeVaga = L.divIcon({
-        className:"",
-        html: `<div style="width:28px;height:28px;background:#ff5722;color:white;font-weight:bold;
-                text-align:center;line-height:28px;border-radius:4px;border:2px solid white;
-                box-shadow:0 0 4px rgba(0,0,0,0.5);">P</div>`,
-        iconSize:[28,28],
-        iconAnchor:[14,28]
-      });
 
       if(markers[id]){
         markers[id].setLatLng([v.latitude,v.longitude])
