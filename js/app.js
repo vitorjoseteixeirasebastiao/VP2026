@@ -1,28 +1,18 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
 /* ===== FIREBASE ===== */
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
   projectId: "vpm2026-8167b",
   storageBucket: "vpm2026-8167b.appspot.com",
   messagingSenderId: "129557498750",
   appId: "1:129557498750:web:c2a510c04946583a17412f"
-};
+});
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+var db = firebase.firestore();
 
 /* ===== MENSAGENS ===== */
 function mostrarMensagem(msg) {
   var div = document.getElementById("mensagens");
-  if (!div) return;
   div.innerText = msg;
   setTimeout(function () {
     div.innerText = "";
@@ -68,81 +58,65 @@ navigator.geolocation.watchPosition(
   { enableHighAccuracy: true }
 );
 
-/* ===== BOTÃO LOCALIZAÇÃO ===== */
-var btnLocalizacao = document.getElementById("btnLocalizacao");
-if (btnLocalizacao) {
-  btnLocalizacao.onclick = function () {
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      map.setView(
-        [pos.coords.latitude, pos.coords.longitude],
-        18
-      );
-    });
-  };
-}
+/* ===== CENTRALIZAR ===== */
+document.getElementById("btnLocalizacao").onclick = function () {
+  navigator.geolocation.getCurrentPosition(function (pos) {
+    map.setView(
+      [pos.coords.latitude, pos.coords.longitude],
+      18
+    );
+  });
+};
 
 /* ===== BUSCA ENDEREÇO ===== */
-var btnBuscar = document.getElementById("btnBuscar");
-if (btnBuscar) {
-  btnBuscar.onclick = function () {
-    var input = document.getElementById("search");
-    if (!input || !input.value) return;
+document.getElementById("btnBuscar").onclick = function () {
+  var q = document.getElementById("search").value;
+  if (!q) return;
 
-    fetch(
-      "https://nominatim.openstreetmap.org/search?format=json&q=" +
-        encodeURIComponent(input.value)
-    )
-      .then(function (res) {
-        return res.json();
-      })
-      .then(function (data) {
-        if (data[0]) {
-          map.setView([data[0].lat, data[0].lon], 18);
-        }
-      });
-  };
-}
-
-var btnLimpar = document.getElementById("btnLimpar");
-if (btnLimpar) {
-  btnLimpar.onclick = function () {
-    document.getElementById("search").value = "";
-  };
-}
+  fetch(
+    "https://nominatim.openstreetmap.org/search?format=json&q=" +
+      encodeURIComponent(q)
+  )
+    .then(function (res) {
+      return res.json();
+    })
+    .then(function (data) {
+      if (data[0]) {
+        map.setView([data[0].lat, data[0].lon], 18);
+      }
+    });
+};
 
 /* ===== SALVAR VAGA ===== */
-var btnSalvar = document.getElementById("btnSalvar");
-if (btnSalvar) {
-  btnSalvar.onclick = function () {
-    var numero = document.getElementById("numero").value;
-    if (!numero) {
-      mostrarMensagem("Digite o número");
-      return;
-    }
+document.getElementById("btnSalvar").onclick = function () {
+  var numero = document.getElementById("numero").value;
+  if (!numero) {
+    mostrarMensagem("Digite o número");
+    return;
+  }
 
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      addDoc(collection(db, "teste"), {
-        numero: numero,
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-        status: "pendente",
-        confirmations: 1,
-        data: new Date()
-      });
-
-      mostrarMensagem("Vaga criada");
-      document.getElementById("numero").value = "";
+  navigator.geolocation.getCurrentPosition(function (pos) {
+    db.collection("teste").add({
+      numero: numero,
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      status: "pendente",
+      confirmations: 1,
+      data: new Date()
     });
-  };
-}
+
+    mostrarMensagem("Vaga criada");
+    document.getElementById("numero").value = "";
+  });
+};
 
 /* ===== MARCADORES ===== */
 var markers = {};
 
-onSnapshot(collection(db, "teste"), function (snapshot) {
-  snapshot.forEach(function (docSnap) {
-    var v = docSnap.data();
-    var id = docSnap.id;
+db.collection("teste").onSnapshot(function (snapshot) {
+  snapshot.forEach(function (doc) {
+    var v = doc.data();
+    var id = doc.id;
 
     if (markers[id]) return;
 
