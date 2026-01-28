@@ -2,8 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 window.onload = async function() {
-
-  // ===== Firebase =====
   const firebaseConfig = {
     apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
     authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -21,13 +19,12 @@ window.onload = async function() {
     setTimeout(()=> div.innerText="", 3000);
   }
 
-  // ===== Inicializa mapa =====
   const map = L.map("map").setView([0,0], 15);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap"
   }).addTo(map);
 
-  // ===== Marcador do usuário =====
+  // Marcador azul do usuário
   const iconeUsuario = L.divIcon({
     className:"",
     html:'<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;box-shadow:0 0 6px rgba(0,123,255,.8);"></div>',
@@ -39,25 +36,20 @@ window.onload = async function() {
   let posicaoAtual = null;
   let primeiraLocalizacao = true;
 
-  // ===== Atualiza posição do usuário =====
   if(navigator.geolocation){
     navigator.geolocation.watchPosition(pos=>{
       posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
       marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
-
       if(primeiraLocalizacao){
         map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
         primeiraLocalizacao=false;
       }
     }, err=>{
       mostrarMensagem("Erro GPS: "+err.message);
-      console.log(err);
     }, {enableHighAccuracy:true});
-  } else {
-    alert("GPS não disponível");
   }
 
-  // ===== Botão adicionar marcador =====
+  // Botão adicionar marcador
   const btnMarcador = document.getElementById("btnMarcador");
   btnMarcador.disabled = true;
 
@@ -68,41 +60,19 @@ window.onload = async function() {
     }
   },100);
 
-  btnMarcador.onclick = async ()=>{
-    if(!posicaoAtual) return;
-
-    // Adiciona marcador no mapa
-    L.marker([posicaoAtual.lat,posicaoAtual.lng])
-      .addTo(map)
-      .bindPopup("Marcador na posição atual")
-      .openPopup();
-
-    // Salva no Firebase
-    try {
-      await addDoc(collection(db,"teste"),{
-        latitude: posicaoAtual.lat,
-        longitude: posicaoAtual.lng,
-        data: new Date()
-      });
-      mostrarMensagem("Marcador salvo!");
-    } catch(err){
-      console.error("Erro ao salvar:", err);
-      mostrarMensagem("Erro ao salvar no Firebase");
-    }
-  };
-
-  // ===== Marcadores existentes =====
+  // ===== Armazena marcadores do Firebase =====
   const markers = {};
   const colRef = collection(db,"teste");
 
-  // Carrega todos os marcadores existentes
+  // Carrega marcadores existentes
   const docsExistentes = await getDocs(colRef);
   docsExistentes.forEach(docSnap=>{
     const id = docSnap.id;
     const data = docSnap.data();
-    markers[id] = L.marker([data.latitude,data.longitude])
-                    .addTo(map)
-                    .bindPopup("Marcador existente");
+    if(!markers[id]){
+      markers[id] = L.marker([data.latitude,data.longitude]).addTo(map)
+                       .bindPopup("Marcador existente");
+    }
   });
 
   // Atualização em tempo real
@@ -118,9 +88,22 @@ window.onload = async function() {
     });
   });
 
-  // ===== Botão centralizar =====
-  const btnCentralizar = document.getElementById("btnCentralizar");
-  btnCentralizar.onclick = ()=>{
+  // Adiciona novo marcador
+  btnMarcador.onclick = async ()=>{
+    if(!posicaoAtual) return;
+    const novo = {latitude: posicaoAtual.lat, longitude: posicaoAtual.lng, data: new Date()};
+
+    try{
+      const docRef = await addDoc(colRef, novo);
+      mostrarMensagem("Marcador salvo!");
+    } catch(err){
+      console.error(err);
+      mostrarMensagem("Erro ao salvar no Firebase");
+    }
+  };
+
+  // Botão centralizar
+  document.getElementById("btnCentralizar").onclick = ()=>{
     if(posicaoAtual){
       map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
     }
