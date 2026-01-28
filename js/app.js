@@ -16,15 +16,15 @@ window.onload = function() {
 
   const marcadorUsuario = L.marker([0,0], {icon:iconeUsuario}).addTo(map);
 
+  let posicaoAtual = null;
   let primeiraLocalizacao = true;
 
   if(navigator.geolocation){
     navigator.geolocation.watchPosition(pos=>{
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      marcadorUsuario.setLatLng([lat,lng]);
+      posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+      marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
       if(primeiraLocalizacao){
-        map.setView([lat,lng],18);
+        map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
         primeiraLocalizacao=false;
       }
     }, err=>{
@@ -33,5 +33,13 @@ window.onload = function() {
   } else {
     console.error("GPS não disponível");
   }
+
+  // ===== Botão centralizar =====
+  const btnCentralizar = document.getElementById("btnCentralizar");
+  btnCentralizar.onclick = ()=>{
+    if(posicaoAtual){
+      map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+    }
+  };
 
 };
