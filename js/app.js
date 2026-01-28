@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-/* Firebase */
+/* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -14,23 +14,21 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 const db = getFirestore();
 
-/* Mensagens */
+/* ================= MENSAGENS ================= */
 function mostrarMensagem(msg) {
   const el = document.getElementById("mensagens");
   el.innerText = msg;
   setTimeout(() => el.innerText = "", 4000);
 }
 
-/* 🗺️ MAPA */
-const map = L.map("map", {
-  zoomControl: true
-});
+/* ================= MAPA ================= */
+const map = L.map("map");
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-/* 🔵 Usuário */
+/* ================= USUÁRIO (CÍRCULO AZUL) ================= */
 const marcadorUsuario = L.circleMarker([0, 0], {
   radius: 10,
   fillColor: "#1e90ff",
@@ -39,31 +37,48 @@ const marcadorUsuario = L.circleMarker([0, 0], {
   fillOpacity: 1
 }).addTo(map);
 
-/* 🚀 LOCALIZAÇÃO NATIVA DO LEAFLET */
+/* ================= LOCALIZAÇÃO INICIAL ================= */
+// Centraliza o mapa APENAS UMA VEZ
 map.locate({
-  setView: true,      // 🔥 CENTRALIZA AUTOMATICAMENTE
+  setView: true,
   maxZoom: 18,
-  watch: true,        // atualiza em tempo real
   enableHighAccuracy: true
 });
 
-/* 📍 Quando achar localização */
+// Quando encontrar a localização inicial
 map.on("locationfound", e => {
   marcadorUsuario.setLatLng(e.latlng);
 });
 
-/* ❌ Erro GPS */
+// Erro de localização
 map.on("locationerror", () => {
-  mostrarMensagem("Não foi possível acessar o GPS");
-  map.setView([-23.5505, -46.6333], 13); // fallback
+  mostrarMensagem("Erro ao acessar GPS");
+  map.setView([-23.5505, -46.6333], 13);
 });
 
-/* 📍 Botão centralizar */
+/* ================= ATUALIZAÇÃO EM TEMPO REAL ================= */
+// Atualiza SOMENTE o ícone (não move o mapa)
+navigator.geolocation.watchPosition(
+  pos => {
+    marcadorUsuario.setLatLng([
+      pos.coords.latitude,
+      pos.coords.longitude
+    ]);
+  },
+  err => console.error("Erro GPS:", err),
+  { enableHighAccuracy: true }
+);
+
+/* ================= BOTÃO CENTRALIZAR ================= */
 document.getElementById("btnLocalizacao").onclick = () => {
-  map.locate({ setView: true, maxZoom: 18 });
+  map.locate({
+    setView: true,
+    maxZoom: 18,
+    enableHighAccuracy: true
+  });
 };
 
-/* 🔍 Pesquisa endereço */
+/* ================= PESQUISA DE ENDEREÇO ================= */
 document.getElementById("search").addEventListener("keydown", async e => {
   if (e.key === "Enter") {
     const q = e.target.value;
@@ -82,16 +97,16 @@ document.getElementById("search").addEventListener("keydown", async e => {
   }
 });
 
-/* Salvar vaga */
+/* ================= SALVAR VAGA ================= */
 document.getElementById("btnSalvar").onclick = () => {
   const numero = document.getElementById("numero").value;
   if (!numero) return mostrarMensagem("Digite o número");
 
-  map.once("locationfound", async e => {
+  navigator.geolocation.getCurrentPosition(async pos => {
     await addDoc(collection(db, "teste"), {
       numero,
-      latitude: e.latlng.lat,
-      longitude: e.latlng.lng,
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
       status: "pendente",
       confirmations: 1,
       data: new Date()
@@ -100,15 +115,14 @@ document.getElementById("btnSalvar").onclick = () => {
     mostrarMensagem("Vaga criada");
     document.getElementById("numero").value = "";
   });
-
-  map.locate();
 };
 
-/* Vagas validadas */
+/* ================= VAGAS VALIDADAS ================= */
 const markersVagas = {};
 onSnapshot(collection(db, "teste"), snap => {
   snap.forEach(docSnap => {
     const d = docSnap.data();
+
     if (d.status === "validado" && !markersVagas[docSnap.id]) {
       markersVagas[docSnap.id] = L.marker(
         [d.latitude, d.longitude]
