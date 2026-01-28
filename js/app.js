@@ -1,4 +1,4 @@
-// Import do Firebase (assumindo ES Modules)
+// ===== Import Firebase =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -37,8 +37,8 @@ async function carregarMarcadores() {
     const querySnapshot = await getDocs(collection(db, colecaoMarcadores));
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      // Adiciona marcador no mapa
-      L.marker([data.latitude, data.longitude]).addTo(map)
+      L.marker([data.latitude, data.longitude])
+        .addTo(map)
         .bindPopup(data.titulo);
     });
   } catch (error) {
@@ -46,7 +46,7 @@ async function carregarMarcadores() {
   }
 }
 
-// ===== Mapa =====
+// ===== Inicializa Mapa =====
 const map = L.map("map").setView([0,0],15);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
@@ -89,12 +89,26 @@ btnCentralizar.onclick = ()=>{
   }
 };
 
-// ===== Evento clique no mapa para salvar marcador =====
+// ===== Botão adicionar marcador na posição atual =====
+const btnAdicionarMarcador = document.getElementById("btnAdicionarMarcador");
+btnAdicionarMarcador.onclick = ()=>{
+  if(posicaoAtual){
+    const {lat, lng} = posicaoAtual;
+    L.marker([lat, lng]).addTo(map)
+      .bindPopup("Marcador do Usuário").openPopup();
+    salvarMarcador(lat, lng, "Marcador do Usuário");
+  } else {
+    alert("Localização não disponível ainda.");
+  }
+};
+
+// ===== Clique no mapa para adicionar marcador manualmente =====
 map.on("click", (e)=>{
   const {lat, lng} = e.latlng;
-  L.marker([lat, lng]).addTo(map).bindPopup("Marcador");
-  salvarMarcador(lat, lng); // salva no Firestore
+  L.marker([lat, lng]).addTo(map)
+    .bindPopup("Marcador");
+  salvarMarcador(lat, lng);
 });
 
-// ===== Carregar marcadores do Firebase =====
+// ===== Carrega marcadores salvos =====
 carregarMarcadores();
