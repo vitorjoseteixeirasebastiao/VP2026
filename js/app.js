@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 window.onload = function(){
 
@@ -21,7 +21,7 @@ window.onload = function(){
     setTimeout(()=> div.innerText="", 3000);
   }
 
-  // ===== Mapa =====
+  // ===== Inicializa mapa =====
   const map = L.map("map").setView([0,0],15);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -63,18 +63,18 @@ window.onload = function(){
     alert("GPS não disponível");
   }
 
-  // ===== Botão adicionar marcador e salvar =====
-  const btn = document.getElementById("btnMarcador");
-  btn.disabled = true;
+  // ===== Botão adicionar marcador =====
+  const btnMarcador = document.getElementById("btnMarcador");
+  btnMarcador.disabled = true;
 
   const habilitarBotao = setInterval(()=>{
     if(posicaoAtual){
-      btn.disabled = false;
+      btnMarcador.disabled = false;
       clearInterval(habilitarBotao);
     }
   },100);
 
-  btn.onclick = async ()=>{
+  btnMarcador.onclick = async ()=>{
     if(!posicaoAtual) return;
 
     // Adiciona marcador no mapa
@@ -93,6 +93,35 @@ window.onload = function(){
     } catch(err){
       console.error("Erro ao salvar:",err);
       mostrarMensagem("Erro ao salvar no Firebase");
+    }
+  }
+
+  // ===== Atualização automática de todos os marcadores =====
+  const markers = {}; // armazena os marcadores existentes
+  const colRef = collection(db,"teste");
+
+  onSnapshot(colRef, snapshot=>{
+    snapshot.docs.forEach(docSnap=>{
+      const id = docSnap.id;
+      const data = docSnap.data();
+
+      // Se já existe marcador, só atualiza posição
+      if(markers[id]){
+        markers[id].setLatLng([data.latitude,data.longitude]);
+      } else {
+        // Cria novo marcador
+        markers[id] = L.marker([data.latitude,data.longitude])
+                          .addTo(map)
+                          .bindPopup("Marcador na posição");
+      }
+    });
+  });
+
+  // ===== Botão centralizar =====
+  const btnCentralizar = document.getElementById("btnCentralizar");
+  btnCentralizar.onclick = ()=>{
+    if(posicaoAtual){
+      map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
     }
   }
 
