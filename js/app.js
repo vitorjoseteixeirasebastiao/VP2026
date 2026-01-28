@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
   projectId: "vpm2026-8167b",
-  storageBucket: "vpm2026-8167b.firebasestorage.app",
+  storageBucket: "vpm2026-8167b.appspot.com",
   messagingSenderId: "129557498750",
   appId: "1:129557498750:web:c2a510c04946583a17412f"
 };
@@ -123,12 +123,21 @@ onSnapshot(vagasRef, snapshot=>{
     const id = change.doc.id;
 
     if(d.status === "validado"){
+      const wazeLink = `https://waze.com/ul?ll=${d.latitude},${d.longitude}&navigate=yes`;
+
       if(markersVagas[id]){
         markersVagas[id].setLatLng([d.latitude,d.longitude]);
+        markersVagas[id].getPopup().setContent(
+          `<p>Número: ${d.numero}</p>
+           <a href="${wazeLink}" target="_blank">Abrir no Waze</a>`
+        );
       } else {
         markersVagas[id] = L.marker([d.latitude,d.longitude],{icon:iconeMoto})
           .addTo(map)
-          .bindPopup(`<p>Número: ${d.numero}</p>`);
+          .bindPopup(
+            `<p>Número: ${d.numero}</p>
+             <a href="${wazeLink}" target="_blank">Abrir no Waze</a>`
+          );
       }
     }
   });
