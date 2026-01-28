@@ -1,12 +1,12 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 6px;
+  margin: 5px;
   background: #f7f7f7;
 }
 
 h2 {
+  font-size: 22px;
   text-align: center;
-  font-size: 26px;
 }
 
 input, button {
@@ -15,23 +15,26 @@ input, button {
   margin-bottom: 10px;
   font-size: 20px;
   border-radius: 10px;
-  border: none;
+  box-sizing: border-box;
 }
 
 button {
+  border: none;
   background: #007bff;
-  color: #fff;
+  color: white;
+  cursor: pointer;
 }
 
 #mensagens {
   min-height: 40px;
   font-size: 20px;
   font-weight: bold;
+  color: #333;
   text-align: center;
 }
 
 #map {
   height: 80vh;
   width: 100%;
-  border-radius: 12px;
+  border-radius: 10px;
 }
