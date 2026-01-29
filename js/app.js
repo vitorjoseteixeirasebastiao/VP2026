@@ -1,7 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
 // ===== Firebase =====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -10,10 +10,12 @@ const firebaseConfig = {
   messagingSenderId: "129557498750",
   appId: "1:129557498750:web:c2a510c04946583a17412f"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colecaoMarcadores = "marcadores";
 
+// ===== Funções Firebase =====
 async function salvarMarcador(lat, lng, titulo="Marcador") {
   try {
     await addDoc(collection(db, colecaoMarcadores), {
@@ -22,16 +24,32 @@ async function salvarMarcador(lat, lng, titulo="Marcador") {
       longitude: lng,
       criadoEm: serverTimestamp()
     });
-  } catch (err) { console.error(err); }
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-// ===== Inicializa Mapa =====
+async function carregarMarcadores() {
+  try {
+    const snapshot = await getDocs(collection(db, colecaoMarcadores));
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      L.marker([data.latitude, data.longitude])
+        .addTo(map)
+        .bindPopup(`<b>${data.titulo}</b><br><a href="https://waze.com/ul?ll=${data.latitude},${data.longitude}&navigate=yes" target="_blank">Abrir no Waze</a>`);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ===== Inicializa mapa =====
 const map = L.map("map").setView([0,0], 15);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-// ===== Marcador usuário =====
+// ===== Marcador azul do usuário =====
 const iconeUsuario = L.divIcon({
   className:"",
   html:'<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;box-shadow:0 0 6px rgba(0,123,255,.8);"></div>',
@@ -44,61 +62,61 @@ let posicaoAtual = null;
 let primeiraLocalizacao = true;
 
 // ===== Geolocalização =====
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition(pos=>{
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(pos => {
     posicaoAtual = {lat: pos.coords.latitude, lng: pos.coords.longitude};
     marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
-    if(primeiraLocalizacao){
+    if(primeiraLocalizacao) {
       map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
-      primeiraLocalizacao=false;
+      primeiraLocalizacao = false;
     }
-  }, err=>console.error(err), {enableHighAccuracy:true});
+  }, err => console.error(err), {enableHighAccuracy:true});
 }
 
 // ===== Botões existentes =====
 document.getElementById("btnCentralizar").onclick = ()=>{
   if(posicaoAtual) map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
 };
-document.getElementById("btnAdicionarMarcador").onclick = async ()=>{
-  if(posicaoAtual){
+
+document.getElementById("btnAdicionarMarcador").onclick = ()=>{
+  if(posicaoAtual) {
     const {lat,lng} = posicaoAtual;
-    L.marker([lat,lng]).addTo(map)
-      .bindPopup(`Marcador do Usuário<br><a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">Abrir no Waze</a>`)
+    L.marker([lat,lng])
+      .addTo(map)
+      .bindPopup(`<b>Marcador do Usuário</b><br><a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">Abrir no Waze</a>`)
       .openPopup();
     salvarMarcador(lat,lng,"Marcador do Usuário");
+  } else {
+    alert("Localização não disponível.");
   }
 };
 
-// ===== Pesquisa de endereços com autocomplete =====
-const inputEndereco = document.getElementById("inputEndereco");
-const provider = new window.GeoSearch.OpenStreetMapProvider();
+// ===== Pesquisa de endereço com botão =====
+document.getElementById("btnBuscar").onclick = async () => {
+  const inputEndereco = document.getElementById("inputEndereco");
+  const query = inputEndereco.value.trim();
+  if (!query) return;
 
-inputEndereco.addEventListener("input", async () => {
-  const query = inputEndereco.value;
-  if(query.length < 3) return;
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    if (data.length === 0) {
+      alert("Endereço não encontrado.");
+      return;
+    }
 
-  const results = await provider.search({ query });
-  let lista = document.getElementById("autocomplete-list");
-  if(lista) lista.remove();
+    const local = data[0];
+    const lat = parseFloat(local.lat);
+    const lng = parseFloat(local.lon);
 
-  lista = document.createElement("div");
-  lista.id = "autocomplete-list";
-  lista.className = "autocomplete-sugestao";
+    map.setView([lat,lng],18); // centraliza no endereço
+    inputEndereco.value = "";
 
-  results.forEach(r => {
-    const div = document.createElement("div");
-    div.textContent = r.label;
-    div.onclick = () => {
-      map.setView([r.y, r.x], 18);
-      L.marker([r.y, r.x]).addTo(map)
-        .bindPopup(`<b>${r.label}</b><br><a href="https://waze.com/ul?ll=${r.y},${r.x}&navigate=yes" target="_blank">Abrir no Waze</a>`)
-        .openPopup();
-      salvarMarcador(r.y, r.x, r.label);
-      lista.remove();
-      inputEndereco.value = "";
-    };
-    lista.appendChild(div);
-  });
+  } catch(err) {
+    console.error(err);
+    alert("Erro ao buscar endereço.");
+  }
+};
 
-  inputEndereco.parentNode.appendChild(lista);
-});
+// ===== Carrega marcadores salvos =====
+carregarMarcadores();
