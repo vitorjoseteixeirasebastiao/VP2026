@@ -1,8 +1,15 @@
-body, html {
-  margin:0;
-  padding:0;
-  height:100%;
+/* Container para layout com flex */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
   font-family: Arial, sans-serif;
+}
+
+#container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 /* Barra de botões */
@@ -30,8 +37,7 @@ body, html {
   background: #e0e0e0;
 }
 
-/* Mapa ocupa o resto da tela */
+/* Mapa ocupa todo o restante do container */
 #map {
-  width:100%;
-  height: calc(100vh - 52px); /* altura total menos barra de botões */
+  flex: 1;
 }
