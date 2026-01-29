@@ -5,29 +5,52 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-/* Barra superior */
 .top-bar {
   display: flex;
   gap: 6px;
   padding: 8px;
   background: #fff;
+  position: relative;
   z-index: 1000;
 }
 
-.top-bar input {
+.busca-container {
+  position: relative;
   flex: 1;
+}
+
+.busca-container input {
+  width: 100%;
   padding: 8px;
   font-size: 14px;
 }
 
-.top-bar button {
-  padding: 8px 12px;
-  font-size: 16px;
-  cursor: pointer;
+.busca-container button {
+  margin-left: 4px;
+  padding: 8px 10px;
 }
 
-/* Mapa */
+.sugestoes {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  z-index: 2000;
+}
+
+.sugestoes div {
+  padding: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.sugestoes div:hover {
+  background: #f0f0f0;
+}
+
 #map {
   width: 100%;
-  height: calc(100vh - 52px);
+  height: calc(100vh - 56px);
 }
