@@ -6,18 +6,27 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-/* Barra de botões e pesquisa */
+/* Barra de botões */
 #barra-botoes {
   display: flex;
   gap: 10px;
   padding: 10px;
   background: #f5f5f5;
   border-bottom: 1px solid #ccc;
-  align-items: center;
+}
+
+/* Barra de pesquisa */
+#barra-pesquisa {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #ccc;
 }
 
 /* Botões */
-#barra-botoes button {
+#barra-botoes button,
+#barra-pesquisa button {
   padding: 8px 12px;
   font-size: 16px;
   border: none;
@@ -27,30 +36,13 @@ html, body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-#barra-botoes button:hover {
+#barra-botoes button:hover,
+#barra-pesquisa button:hover {
   background: #e0e0e0;
 }
 
 /* Mapa ocupa o resto da tela */
 #map {
   width: 100%;
-  height: calc(100vh - 52px); /* ajusta conforme altura da barra */
-}
-
-/* Lista de sugestões autocomplete */
-.autocomplete-sugestao {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  z-index: 1000;
-  width: calc(100% - 20px);
-  max-height: 200px;
-  overflow-y: auto;
-}
-.autocomplete-sugestao div {
-  padding: 5px;
-  cursor: pointer;
-}
-.autocomplete-sugestao div:hover {
-  background: #f0f0f0;
+  height: calc(100vh - 104px); /* altura das duas barras */
 }
