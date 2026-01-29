@@ -145,4 +145,4 @@ window.onload = function() {
   // ===== Inicializa carregamento =====
   carregarMarcadores();
 
-}; // fim window.onload
+};
