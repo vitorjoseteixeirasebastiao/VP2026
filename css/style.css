@@ -6,7 +6,7 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-/* Barra de botões fixa acima do mapa */
+/* Barra de botões acima do mapa */
 #barra-botoes {
   display: flex;
   gap: 10px;
@@ -33,5 +33,5 @@ html, body {
 /* Mapa ocupa o resto da tela */
 #map {
   width: 100%;
-  height: calc(100vh - 52px); /* altura total da tela menos a barra de botões */
+  height: calc(100vh - 52px); /* altura da tela menos a barra */
 }
