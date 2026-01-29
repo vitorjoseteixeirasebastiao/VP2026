@@ -1,4 +1,4 @@
-// ===== Import Firebase =====
+// ===== Firebase =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getFirestore,
@@ -8,7 +8,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// ===== Config Firebase =====
+// Config
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -20,16 +20,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const colecaoMarcadores = "marcadores";
+const colecao = "marcadores";
 
-// ===== Mapa =====
+// ===== MAPA =====
 const map = L.map("map").setView([0, 0], 15);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-// ===== Ícone usuário =====
+// ===== ÍCONE USUÁRIO =====
 const iconeUsuario = L.divIcon({
   className: "",
   html: `
@@ -42,16 +42,16 @@ const iconeUsuario = L.divIcon({
       box-shadow:0 0 6px rgba(0,123,255,.8);
     "></div>
   `,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9]
+  iconSize: [18,18],
+  iconAnchor: [9,9]
 });
 
-const marcadorUsuario = L.marker([0, 0], { icon: iconeUsuario }).addTo(map);
+const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
 
 let posicaoAtual = null;
-let primeiraLocalizacao = true;
+let primeira = true;
 
-// ===== Geolocalização =====
+// ===== GPS =====
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
     pos => {
@@ -62,17 +62,17 @@ if (navigator.geolocation) {
 
       marcadorUsuario.setLatLng([posicaoAtual.lat, posicaoAtual.lng]);
 
-      if (primeiraLocalizacao) {
+      if (primeira) {
         map.setView([posicaoAtual.lat, posicaoAtual.lng], 18);
-        primeiraLocalizacao = false;
+        primeira = false;
       }
     },
-    err => console.error("Erro GPS:", err.message),
+    err => console.error("GPS erro:", err.message),
     { enableHighAccuracy: true }
   );
 }
 
-// ===== Reverse geocoding =====
+// ===== ENDEREÇO =====
 async function obterEndereco(lat, lng) {
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
   const res = await fetch(url);
@@ -80,72 +80,70 @@ async function obterEndereco(lat, lng) {
   return data.display_name || "Endereço não encontrado";
 }
 
-// ===== Firebase =====
+function popupConteudo(lat, lng, endereco) {
+  const waze = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+  return `
+    <strong>${endereco}</strong><br><br>
+    <a href="${waze}" target="_blank">🧭 Abrir no Waze</a>
+  `;
+}
+
+// ===== FIREBASE =====
 async function salvarMarcador(lat, lng) {
-  await addDoc(collection(db, colecaoMarcadores), {
+  await addDoc(collection(db, colecao), {
     latitude: lat,
     longitude: lng,
     criadoEm: serverTimestamp()
   });
 }
 
-function criarPopup(lat, lng, endereco) {
-  const linkWaze = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+async function carregarMarcadores() {
+  const snapshot = await getDocs(collection(db, colecao));
+  snapshot.forEach(async doc => {
+    const d = doc.data();
+    const endereco = await obterEndereco(d.latitude, d.longitude);
 
-  return `
-    <strong>${endereco}</strong><br><br>
-    <a href="${linkWaze}" target="_blank">🧭 Abrir no Waze</a>
-  `;
+    L.marker([d.latitude, d.longitude])
+      .addTo(map)
+      .bindPopup(popupConteudo(d.latitude, d.longitude, endereco));
+  });
 }
 
-// ===== Clique no mapa com confirmação =====
-map.on("click", async e => {
+carregarMarcadores();
+
+// ===== CLIQUE NO MAPA COM CONFIRMAÇÃO =====
+map.on("click", e => {
   const { lat, lng } = e.latlng;
 
-  const popupConfirmacao = L.popup()
+  const popup = L.popup()
     .setLatLng([lat, lng])
     .setContent(`
       <strong>Adicionar marcador aqui?</strong><br><br>
-      <button id="confirmarMarcador">✅ Sim</button>
-      <button id="cancelarMarcador">❌ Não</button>
+      <button id="confirmar">✅ Sim</button>
+      <button id="cancelar">❌ Não</button>
     `)
     .openOn(map);
 
   setTimeout(() => {
-    document.getElementById("confirmarMarcador").onclick = async () => {
+    document.getElementById("confirmar").onclick = async () => {
       const endereco = await obterEndereco(lat, lng);
 
       L.marker([lat, lng])
         .addTo(map)
-        .bindPopup(criarPopup(lat, lng, endereco))
+        .bindPopup(popupConteudo(lat, lng, endereco))
         .openPopup();
 
       await salvarMarcador(lat, lng);
       map.closePopup();
     };
 
-    document.getElementById("cancelarMarcador").onclick = () => {
+    document.getElementById("cancelar").onclick = () => {
       map.closePopup();
     };
   }, 100);
 });
 
-// ===== Carregar marcadores salvos =====
-async function carregarMarcadores() {
-  const querySnapshot = await getDocs(collection(db, colecaoMarcadores));
-  querySnapshot.forEach(async doc => {
-    const d = doc.data();
-    const endereco = await obterEndereco(d.latitude, d.longitude);
-
-    L.marker([d.latitude, d.longitude])
-      .addTo(map)
-      .bindPopup(criarPopup(d.latitude, d.longitude, endereco));
-  });
-}
-
-carregarMarcadores();
-
-// ===== Botão centralizar =====
+// ===== CENTRALIZAR =====
 document.getElementById("btnCentralizar").onclick = () => {
   if (posicaoAtual) {
     map.setView([posicaoAtual.lat, posicaoAtual.lng], 18);
