@@ -8,7 +8,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Config Firebase
+// Config
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -51,7 +51,7 @@ const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
 let posicaoAtual = null;
 let primeira = true;
 
-// GPS
+// ===== GPS =====
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
     pos => {
@@ -112,7 +112,7 @@ async function carregarMarcadores() {
 
 carregarMarcadores();
 
-// ===== CLIQUE NO MAPA COM CONFIRMAÇÃO =====
+// ===== CLIQUE NO MAPA (CONFIRMAÇÃO) =====
 map.on("click", e => {
   const { lat, lng } = e.latlng;
 
@@ -144,18 +144,41 @@ map.on("click", e => {
   }, 100);
 });
 
-// ===== BUSCA =====
-document.getElementById("btnBuscar").onclick = async () => {
-  const texto = document.getElementById("inputBusca").value;
-  if (!texto) return;
+// ===== BUSCA + AUTOCOMPLETE =====
+const inputBusca = document.getElementById("inputBusca");
+const btnBuscar = document.getElementById("btnBuscar");
+const sugestoesDiv = document.getElementById("sugestoes");
+
+let resultados = [];
+
+inputBusca.addEventListener("input", async () => {
+  const texto = inputBusca.value.trim();
+  sugestoesDiv.innerHTML = "";
+  resultados = [];
+
+  if (texto.length < 3) return;
 
   const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${texto}&limit=1`
+    `https://nominatim.openstreetmap.org/search?format=json&q=${texto}&limit=2`
   );
-  const data = await res.json();
+  resultados = await res.json();
 
-  if (data.length) {
-    map.setView([data[0].lat, data[0].lon], 18);
+  resultados.forEach(item => {
+    const div = document.createElement("div");
+    div.textContent = item.display_name;
+    div.onclick = () => {
+      map.setView([item.lat, item.lon], 18);
+      sugestoesDiv.innerHTML = "";
+    };
+    sugestoesDiv.appendChild(div);
+  });
+});
+
+btnBuscar.onclick = () => {
+  if (resultados.length > 0) {
+    const r = resultados[0];
+    map.setView([r.lat, r.lon], 18);
+    sugestoesDiv.innerHTML = "";
   }
 };
 
