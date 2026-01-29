@@ -8,17 +8,18 @@
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
+<!-- CSS custom -->
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+<!-- Barra de botões acima do mapa -->
+<div id="barra-botoes">
+  <button id="btnCentralizar" title="Centralizar">📍 Centralizar</button>
+  <button id="btnAdicionarMarcador" title="Adicionar marcador">➕ Adicionar Marcador</button>
+</div>
+
 <div id="map"></div>
-
-<!-- Botão centralizar sobre o mapa -->
-<button id="btnCentralizar" title="Centralizar" class="map-button">📍</button>
-
-<!-- Botão adicionar marcador na posição atual -->
-<button id="btnAdicionarMarcador" title="Adicionar marcador" class="map-button" style="top: 60px;">➕</button>
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
