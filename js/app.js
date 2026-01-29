@@ -1,9 +1,14 @@
 // ===== Import Firebase =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, serverTimestamp } 
-from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// ===== Configuração Firebase =====
+// ===== Config Firebase =====
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -13,7 +18,6 @@ const firebaseConfig = {
   appId: "1:129557498750:web:c2a510c04946583a17412f"
 };
 
-// ===== Firebase Init =====
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colecaoMarcadores = "marcadores";
@@ -30,19 +34,19 @@ const iconeUsuario = L.divIcon({
   className: "",
   html: `
     <div style="
-      width:16px;
-      height:16px;
+      width:18px;
+      height:18px;
       background:#007bff;
       border:3px solid white;
       border-radius:50%;
       box-shadow:0 0 6px rgba(0,123,255,.8);
     "></div>
   `,
-  iconSize: [16,16],
-  iconAnchor: [8,8]
+  iconSize: [18, 18],
+  iconAnchor: [9, 9]
 });
 
-const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
+const marcadorUsuario = L.marker([0, 0], { icon: iconeUsuario }).addTo(map);
 
 let posicaoAtual = null;
 let primeiraLocalizacao = true;
@@ -68,6 +72,14 @@ if (navigator.geolocation) {
   );
 }
 
+// ===== Reverse geocoding =====
+async function obterEndereco(lat, lng) {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data.display_name || "Endereço não encontrado";
+}
+
 // ===== Firebase =====
 async function salvarMarcador(lat, lng) {
   await addDoc(collection(db, colecaoMarcadores), {
@@ -77,18 +89,17 @@ async function salvarMarcador(lat, lng) {
   });
 }
 
-async function carregarMarcadores() {
-  const querySnapshot = await getDocs(collection(db, colecaoMarcadores));
-  querySnapshot.forEach(doc => {
-    const d = doc.data();
-    L.marker([d.latitude, d.longitude])
-      .addTo(map)
-      .bindPopup("Vaga registrada");
-  });
+function criarPopup(lat, lng, endereco) {
+  const linkWaze = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+
+  return `
+    <strong>${endereco}</strong><br><br>
+    <a href="${linkWaze}" target="_blank">🧭 Abrir no Waze</a>
+  `;
 }
 
-// ===== Clique no mapa COM confirmação =====
-map.on("click", e => {
+// ===== Clique no mapa com confirmação =====
+map.on("click", async e => {
   const { lat, lng } = e.latlng;
 
   const popupConfirmacao = L.popup()
@@ -102,9 +113,11 @@ map.on("click", e => {
 
   setTimeout(() => {
     document.getElementById("confirmarMarcador").onclick = async () => {
+      const endereco = await obterEndereco(lat, lng);
+
       L.marker([lat, lng])
         .addTo(map)
-        .bindPopup("Vaga registrada")
+        .bindPopup(criarPopup(lat, lng, endereco))
         .openPopup();
 
       await salvarMarcador(lat, lng);
@@ -117,12 +130,24 @@ map.on("click", e => {
   }, 100);
 });
 
+// ===== Carregar marcadores salvos =====
+async function carregarMarcadores() {
+  const querySnapshot = await getDocs(collection(db, colecaoMarcadores));
+  querySnapshot.forEach(async doc => {
+    const d = doc.data();
+    const endereco = await obterEndereco(d.latitude, d.longitude);
+
+    L.marker([d.latitude, d.longitude])
+      .addTo(map)
+      .bindPopup(criarPopup(d.latitude, d.longitude, endereco));
+  });
+}
+
+carregarMarcadores();
+
 // ===== Botão centralizar =====
 document.getElementById("btnCentralizar").onclick = () => {
   if (posicaoAtual) {
     map.setView([posicaoAtual.lat, posicaoAtual.lng], 18);
   }
 };
-
-// ===== Carrega marcadores =====
-carregarMarcadores();
