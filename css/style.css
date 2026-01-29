@@ -1,26 +1,16 @@
-/* html e body precisam ter 100% de altura */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center; /* centraliza horizontalmente */
-  align-items: flex-start; /* topo */
-  background: #f0f0f0;
 }
 
-/* Container do mapa e barra de botões */
 #container {
   display: flex;
   flex-direction: column;
-  width: 70%;     /* largura do mapa */
-  height: 80%;    /* altura do mapa */
-  margin-top: 20px;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  background: #fff;
+  height: 100%;
+  width: 100%;
 }
 
 /* Barra de botões */
@@ -49,6 +39,6 @@ html, body {
 
 /* Mapa ocupa o restante do container */
 #map {
-  flex: 1;      /* ocupa todo o espaço restante */
-  min-height: 0; /* necessário para flex funcionar corretamente no Chrome/Safari */
+  flex: 1;
+  min-height: 0; /* essencial para flex funcionar */
 }
