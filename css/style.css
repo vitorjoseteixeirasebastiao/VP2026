@@ -6,13 +6,14 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-/* Barra de botões acima do mapa */
+/* Barra de botões e pesquisa */
 #barra-botoes {
   display: flex;
   gap: 10px;
   padding: 10px;
   background: #f5f5f5;
   border-bottom: 1px solid #ccc;
+  align-items: center;
 }
 
 /* Botões */
@@ -33,5 +34,23 @@ html, body {
 /* Mapa ocupa o resto da tela */
 #map {
   width: 100%;
-  height: calc(100vh - 52px); /* altura da tela menos a barra */
+  height: calc(100vh - 52px); /* ajusta conforme altura da barra */
+}
+
+/* Lista de sugestões autocomplete */
+.autocomplete-sugestao {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  z-index: 1000;
+  width: calc(100% - 20px);
+  max-height: 200px;
+  overflow-y: auto;
+}
+.autocomplete-sugestao div {
+  padding: 5px;
+  cursor: pointer;
+}
+.autocomplete-sugestao div:hover {
+  background: #f0f0f0;
 }
