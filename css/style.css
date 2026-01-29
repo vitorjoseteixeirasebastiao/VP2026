@@ -1,25 +1,33 @@
-/* Container para layout com flex */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
   font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center; /* centraliza horizontalmente */
+  align-items: flex-start; /* começa do topo */
+  background: #f0f0f0;
 }
 
 #container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 70%;   /* largura do mapa */
+  height: 80%;  /* altura do mapa */
+  margin-top: 20px; /* espaço do topo */
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  background: #fff;
 }
 
-/* Barra de botões */
+/* Barra de botões acima do mapa */
 #barra-botoes {
   display: flex;
   gap: 10px;
   padding: 10px;
   background: #f5f5f5;
   border-bottom: 1px solid #ccc;
-  z-index: 1001;
 }
 
 /* Botões */
@@ -37,7 +45,7 @@ html, body {
   background: #e0e0e0;
 }
 
-/* Mapa ocupa todo o restante do container */
+/* Mapa ocupa o restante do container */
 #map {
-  flex: 1;
+  flex: 1; /* ocupa todo o espaço restante dentro do container */
 }
