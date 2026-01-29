@@ -2,91 +2,64 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  width: 100%;
-  font-family: Arial, sans-serif;
-  overflow: hidden;
 }
 
-/* ===== BARRA SUPERIOR ===== */
+/* Mapa */
+#map {
+  width: 100%;
+  height: 100vh;
+}
+
+/* Barra superior */
 .top-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
-  background: #fff;
-  position: relative;
-  z-index: 3000;
-}
-
-/* ===== BUSCA ===== */
-.busca-container {
-  position: relative;
-  flex: 1;
-}
-
-.busca-container input {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px; /* importante p/ mobile */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.busca-container button {
   position: absolute;
-  right: 4px;
-  top: 4px;
-  bottom: 4px;
-  padding: 0 10px;
-  font-size: 16px;
-  border: none;
-  background: #007bff;
-  color: #fff;
-  border-radius: 4px;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 20px);
+  max-width: 520px;
+  display: flex;
+  gap: 6px;
+  z-index: 2000;
 }
 
-/* ===== SUGESTÕES (SOBRE O MAPA) ===== */
-#sugestoes {
+/* Input */
+#searchInput {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+}
+
+/* Botões */
+#btnBuscar,
+#btnCentralizar {
+  padding: 12px 14px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Sugestões */
+#suggestions {
   position: absolute;
   top: 52px;
   left: 0;
-  right: 0;
-  background: #fff;
+  width: 100%;
+  background: white;
   border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  z-index: 9999; /* MAIS ALTO QUE O MAPA */
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  z-index: 3000;
 }
 
-#sugestoes div {
-  padding: 10px;
-  font-size: 14px;
+.suggestion {
+  padding: 12px;
   border-bottom: 1px solid #eee;
+  cursor: pointer;
 }
 
-#sugestoes div:last-child {
+.suggestion:last-child {
   border-bottom: none;
 }
 
-#sugestoes div:hover {
-  background: #f2f2f2;
-}
-
-/* ===== BOTÃO CENTRALIZAR ===== */
-#btnCentralizar {
-  width: 44px;
-  height: 44px;
-  font-size: 22px;
-  border: none;
-  border-radius: 50%;
-  background: #007bff;
-  color: #fff;
-  flex-shrink: 0;
-}
-
-/* ===== MAPA ===== */
-#map {
-  width: 100%;
-  height: calc(100vh - 64px);
-  position: relative;
-  z-index: 1;
+.suggestion:hover {
+  background: #f0f0f0;
 }
