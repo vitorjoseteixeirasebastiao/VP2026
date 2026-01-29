@@ -5,33 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mapa de Vagas</title>
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Barra superior -->
   <div class="top-bar">
-    <input
-      type="text"
-      id="inputBusca"
-      placeholder="Buscar endereço..."
-    />
-    <button id="btnBuscar">Buscar</button>
+    <div class="busca-container">
+      <input id="inputBusca" type="text" placeholder="Buscar endereço...">
+      <button id="btnBuscar">Buscar</button>
+      <div id="sugestoes" class="sugestoes"></div>
+    </div>
     <button id="btnCentralizar">📍</button>
   </div>
 
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- App -->
   <script type="module" src="js/app.js"></script>
 
 </body>
