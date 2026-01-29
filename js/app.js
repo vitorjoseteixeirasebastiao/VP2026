@@ -32,7 +32,7 @@ async function salvarMarcador(lat, lng, titulo="Marcador") {
   }
 }
 
-// ===== Função de geocoding reverso (lat/lng -> endereço) =====
+// ===== Função de geocoding reverso =====
 async function obterEndereco(lat, lng) {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
@@ -45,8 +45,8 @@ async function obterEndereco(lat, lng) {
   }
 }
 
-// ===== Função para criar marcador com popup de endereço e link para Waze =====
-async function criarMarcador(lat, lng, titulo="Marcador") {
+// ===== Função para criar marcador na posição do usuário =====
+async function criarMarcadorUsuario(lat, lng, titulo="Marcador do Usuário") {
   const endereco = await obterEndereco(lat, lng);
   const linkWaze = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
   
@@ -56,12 +56,10 @@ async function criarMarcador(lat, lng, titulo="Marcador") {
     <a href="${linkWaze}" target="_blank">Abrir no Waze</a>
   `;
   
-  // Adiciona marcador no mapa
   L.marker([lat, lng]).addTo(map)
     .bindPopup(popupContent)
     .openPopup();
   
-  // Salva no Firebase
   salvarMarcador(lat, lng, titulo);
 }
 
@@ -104,6 +102,8 @@ const btnCentralizar = document.getElementById("btnCentralizar");
 btnCentralizar.onclick = ()=>{
   if(posicaoAtual){
     map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+  } else {
+    alert("Localização não disponível ainda.");
   }
 };
 
@@ -112,17 +112,11 @@ const btnAdicionarMarcador = document.getElementById("btnAdicionarMarcador");
 btnAdicionarMarcador.onclick = ()=>{
   if(posicaoAtual){
     const {lat, lng} = posicaoAtual;
-    criarMarcador(lat, lng, "Marcador do Usuário");
+    criarMarcadorUsuario(lat, lng);
   } else {
     alert("Localização não disponível ainda.");
   }
 };
-
-// ===== Clique no mapa para adicionar marcador manualmente =====
-map.on("click", (e)=>{
-  const {lat, lng} = e.latlng;
-  criarMarcador(lat, lng, "Marcador");
-});
 
 // ===== Carrega marcadores salvos do Firebase =====
 async function carregarMarcadores() {
