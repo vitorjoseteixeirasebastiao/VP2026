@@ -13,7 +13,7 @@ body, html {
 .map-button {
   position: absolute;
   right: 10px;
-  z-index: 1000;
+  z-index: 1001; /* acima do mapa */
   background: white;
   border: none;
   padding: 8px 12px;
@@ -23,11 +23,16 @@ body, html {
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
-.map-button:hover {
-  background: #f0f0f0;
+/* Centralizar no topo */
+#btnCentralizar {
+  top: 10px;
 }
 
-/* Ajuste de posição do botão adicional */
+/* Adicionar marcador abaixo do centralizar */
 #btnAdicionarMarcador {
-  top: 60px; /* abaixo do botão de centralizar */
+  top: 60px;
+}
+
+.map-button:hover {
+  background: #f0f0f0;
 }
