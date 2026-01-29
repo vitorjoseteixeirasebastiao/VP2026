@@ -25,7 +25,7 @@ async function salvarMarcador(lat, lng, titulo="Marcador") {
       criadoEm: serverTimestamp()
     });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao salvar marcador:", err);
   }
 }
 
@@ -34,12 +34,16 @@ async function carregarMarcadores() {
     const snapshot = await getDocs(collection(db, colecaoMarcadores));
     snapshot.forEach(doc => {
       const data = doc.data();
-      L.marker([data.latitude, data.longitude])
+      const lat = parseFloat(data.latitude);
+      const lng = parseFloat(data.longitude);
+      const titulo = data.titulo || "Marcador";
+      
+      L.marker([lat, lng])
         .addTo(map)
-        .bindPopup(`<b>${data.titulo}</b><br><a href="https://waze.com/ul?ll=${data.latitude},${data.longitude}&navigate=yes" target="_blank">Abrir no Waze</a>`);
+        .bindPopup(`<b>${titulo}</b><br><a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">Abrir no Waze</a>`);
     });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao carregar marcadores:", err);
   }
 }
 
@@ -70,7 +74,7 @@ if (navigator.geolocation) {
       map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
       primeiraLocalizacao = false;
     }
-  }, err => console.error(err), {enableHighAccuracy:true});
+  }, err => console.error("Erro GPS:", err), {enableHighAccuracy:true});
 }
 
 // ===== Botões existentes =====
@@ -78,45 +82,58 @@ document.getElementById("btnCentralizar").onclick = ()=>{
   if(posicaoAtual) map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
 };
 
-document.getElementById("btnAdicionarMarcador").onclick = ()=>{
+document.getElementById("btnAdicionarMarcador").onclick = async ()=>{
   if(posicaoAtual) {
     const {lat,lng} = posicaoAtual;
+
+    // Busca endereço via Nominatim para exibir no pop-up
+    let endereco = "Marcador do Usuário";
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      if(data.display_name) endereco = data.display_name;
+    } catch(err){ console.error(err); }
+
     L.marker([lat,lng])
       .addTo(map)
-      .bindPopup(`<b>Marcador do Usuário</b><br><a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">Abrir no Waze</a>`)
+      .bindPopup(`<b>${endereco}</b><br><a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">Abrir no Waze</a>`)
       .openPopup();
-    salvarMarcador(lat,lng,"Marcador do Usuário");
+
+    salvarMarcador(lat,lng,endereco);
   } else {
     alert("Localização não disponível.");
   }
 };
 
-// ===== Pesquisa de endereço com botão =====
-document.getElementById("btnBuscar").onclick = async () => {
-  const inputEndereco = document.getElementById("inputEndereco");
+// ===== Pesquisa de endereço com até 2 sugestões =====
+const inputEndereco = document.getElementById("inputEndereco");
+const sugestoesDiv = document.getElementById("sugestoes");
+
+inputEndereco.addEventListener("input", async () => {
   const query = inputEndereco.value.trim();
-  if (!query) return;
+  if(!query) {
+    sugestoesDiv.innerHTML = "";
+    return;
+  }
 
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`);
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=2&q=${encodeURIComponent(query)}`);
     const data = await res.json();
-    if (data.length === 0) {
-      alert("Endereço não encontrado.");
-      return;
-    }
-
-    const local = data[0];
-    const lat = parseFloat(local.lat);
-    const lng = parseFloat(local.lon);
-
-    map.setView([lat,lng],18); // centraliza no endereço
-    inputEndereco.value = "";
-
-  } catch(err) {
+    sugestoesDiv.innerHTML = "";
+    data.forEach(item => {
+      const div = document.createElement("div");
+      div.textContent = item.display_name;
+      div.onclick = () => {
+        map.setView([parseFloat(item.lat), parseFloat(item.lon)],18);
+        sugestoesDiv.innerHTML = "";
+        inputEndereco.value = "";
+      };
+      sugestoesDiv.appendChild(div);
+    });
+  } catch(err){
     console.error(err);
-    alert("Erro ao buscar endereço.");
   }
-};
+});
 
 // ===== Carrega marcadores salvos =====
 carregarMarcadores();
