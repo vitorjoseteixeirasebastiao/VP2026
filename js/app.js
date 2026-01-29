@@ -8,7 +8,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Config
+// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
@@ -29,7 +29,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-// ===== ÍCONE USUÁRIO =====
+// ===== USUÁRIO =====
 const iconeUsuario = L.divIcon({
   className: "",
   html: `
@@ -51,7 +51,7 @@ const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
 let posicaoAtual = null;
 let primeira = true;
 
-// ===== GPS =====
+// GPS
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
     pos => {
@@ -67,15 +67,16 @@ if (navigator.geolocation) {
         primeira = false;
       }
     },
-    err => console.error("GPS erro:", err.message),
+    err => console.error("Erro GPS:", err.message),
     { enableHighAccuracy: true }
   );
 }
 
 // ===== ENDEREÇO =====
 async function obterEndereco(lat, lng) {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-  const res = await fetch(url);
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+  );
   const data = await res.json();
   return data.display_name || "Endereço não encontrado";
 }
@@ -142,6 +143,21 @@ map.on("click", e => {
     };
   }, 100);
 });
+
+// ===== BUSCA =====
+document.getElementById("btnBuscar").onclick = async () => {
+  const texto = document.getElementById("inputBusca").value;
+  if (!texto) return;
+
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${texto}&limit=1`
+  );
+  const data = await res.json();
+
+  if (data.length) {
+    map.setView([data[0].lat, data[0].lon], 18);
+  }
+};
 
 // ===== CENTRALIZAR =====
 document.getElementById("btnCentralizar").onclick = () => {
