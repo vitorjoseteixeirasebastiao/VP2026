@@ -3,23 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa com Pesquisa</title>
+<title>Mapa Simples</title>
 
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
-<!-- Leaflet-Geosearch CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch/dist/geosearch.css"/>
 
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- Barra de botões e pesquisa -->
+<!-- Barra de botões -->
 <div id="barra-botoes">
     <button id="btnCentralizar">📍 Centralizar</button>
     <button id="btnAdicionarMarcador">➕ Adicionar Marcador</button>
-    <input type="text" id="inputEndereco" placeholder="Pesquisar endereço..." style="flex:1; padding:8px; font-size:16px;">
+</div>
+
+<!-- Barra de pesquisa -->
+<div id="barra-pesquisa">
+    <input type="text" id="inputEndereco" placeholder="Digite um endereço..." style="flex:1; padding:8px; font-size:16px;">
+    <button id="btnBuscar">🔍 Buscar</button>
 </div>
 
 <!-- Mapa -->
@@ -27,9 +29,6 @@
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Leaflet-Geosearch JS -->
-<script src="https://unpkg.com/leaflet-geosearch/dist/bundle.min.js"></script>
 
 <!-- App JS -->
 <script type="module" src="js/app.js"></script>
