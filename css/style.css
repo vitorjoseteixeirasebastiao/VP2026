@@ -2,29 +2,32 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-family: Arial, sans-serif;
 }
 
-/* Mapa SEMPRE visível */
+/* Barra superior */
+.top-bar {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: #fff;
+  z-index: 1000;
+}
+
+.top-bar input {
+  flex: 1;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.top-bar button {
+  padding: 8px 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Mapa */
 #map {
   width: 100%;
-  height: 100vh;
-}
-
-/* Botão flutuante */
-.map-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
-  background: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-.map-button:hover {
-  background: #f0f0f0;
+  height: calc(100vh - 52px);
 }
