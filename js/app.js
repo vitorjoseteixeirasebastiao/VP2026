@@ -99,7 +99,7 @@ window.onload = function() {
     console.error("GPS não disponível");
   }
 
-  // ===== Botões acima do mapa =====
+  // ===== Botões =====
   const btnCentralizar = document.getElementById("btnCentralizar");
   btnCentralizar.onclick = ()=>{
     if(posicaoAtual){
