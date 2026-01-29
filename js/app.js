@@ -35,14 +35,28 @@ async function salvarMarcador(lat, lng, titulo="Marcador") {
 async function carregarMarcadores() {
   try {
     const querySnapshot = await getDocs(collection(db, colecaoMarcadores));
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach(async (doc) => {
       const data = doc.data();
+      const endereco = await obterEndereco(data.latitude, data.longitude);
+      const linkWaze = `https://waze.com/ul?ll=${data.latitude},${data.longitude}&navigate=yes`;
+      const popupContent = `<b>${data.titulo}</b><br>${endereco}<br><a href="${linkWaze}" target="_blank">Abrir no Waze</a>`;
       L.marker([data.latitude, data.longitude])
         .addTo(map)
-        .bindPopup(data.titulo);
+        .bindPopup(popupContent);
     });
   } catch (error) {
     console.error("Erro ao carregar marcadores:", error);
+  }
+}
+
+// ===== Geocoding reverso =====
+async function obterEndereco(lat, lng) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+    const data = await res.json();
+    return data.display_name || "Endereço não encontrado";
+  } catch {
+    return "Endereço não encontrado";
   }
 }
 
@@ -82,33 +96,27 @@ if(navigator.geolocation){
 }
 
 // ===== Botão centralizar =====
-const btnCentralizar = document.getElementById("btnCentralizar");
-btnCentralizar.onclick = ()=>{
+document.getElementById("btnCentralizar").onclick = ()=>{
   if(posicaoAtual){
     map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
   }
 };
 
-// ===== Botão adicionar marcador na posição atual =====
-const btnAdicionarMarcador = document.getElementById("btnAdicionarMarcador");
-btnAdicionarMarcador.onclick = ()=>{
+// ===== Botão adicionar marcador =====
+document.getElementById("btnAdicionarMarcador").onclick = async ()=>{
   if(posicaoAtual){
     const {lat, lng} = posicaoAtual;
+    const endereco = await obterEndereco(lat, lng);
+    const linkWaze = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+    const popupContent = `<b>Marcador do Usuário</b><br>${endereco}<br><a href="${linkWaze}" target="_blank">Abrir no Waze</a>`;
     L.marker([lat, lng]).addTo(map)
-      .bindPopup("Marcador do Usuário").openPopup();
+      .bindPopup(popupContent)
+      .openPopup();
     salvarMarcador(lat, lng, "Marcador do Usuário");
   } else {
     alert("Localização não disponível ainda.");
   }
 };
-
-// ===== Clique no mapa para adicionar marcador manualmente =====
-map.on("click", (e)=>{
-  const {lat, lng} = e.latlng;
-  L.marker([lat, lng]).addTo(map)
-    .bindPopup("Marcador");
-  salvarMarcador(lat, lng);
-});
 
 // ===== Carrega marcadores salvos =====
 carregarMarcadores();
