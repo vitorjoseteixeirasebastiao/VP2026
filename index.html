@@ -7,6 +7,7 @@
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"/>
 
   <style>
     body {
@@ -18,29 +19,81 @@
       width: 100%;
       height: 100vh;
     }
+
+    .btn-localizacao {
+      background: white;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
 
 <div id="map"></div>
 
-<!-- Leaflet JS -->
+<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Plugin para carregar KML -->
+<!-- Plugin KML -->
 <script src="https://unpkg.com/leaflet-omnivore/leaflet-omnivore.min.js"></script>
+
+<!-- Plugin Busca -->
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
 <script>
 
-  // Criar mapa (posição inicial padrão - pode ser qualquer cidade)
-  var map = L.map('map').setView([-23.5505, -46.6333], 12);
+  // Criar mapa
+  var map = L.map('map').setView([-23.5505, -46.6333], 13);
 
-  // Camada base OpenStreetMap
+  // Camada base
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Carregar o KML ZonaAzul
+  // =============================
+  // GEOLOCALIZAÇÃO AUTOMÁTICA
+  // =============================
+  map.locate({setView: true, maxZoom: 16});
+
+  function onLocationFound(e) {
+    L.marker(e.latlng)
+      .addTo(map)
+      .bindPopup("Você está aqui")
+      .openPopup();
+  }
+
+  function onLocationError(e) {
+    console.log("Geolocalização não permitida.");
+  }
+
+  map.on('locationfound', onLocationFound);
+  map.on('locationerror', onLocationError);
+
+  // Botão para voltar à localização
+  var botaoLocalizacao = L.control({position: 'topleft'});
+
+  botaoLocalizacao.onAdd = function(map) {
+    var div = L.DomUtil.create('div', 'btn-localizacao');
+    div.innerHTML = "📍 Minha Localização";
+    div.onclick = function() {
+      map.locate({setView: true, maxZoom: 16});
+    };
+    return div;
+  };
+
+  botaoLocalizacao.addTo(map);
+
+  // =============================
+  // BARRA DE PESQUISA
+  // =============================
+  L.Control.geocoder({
+    defaultMarkGeocode: true
+  }).addTo(map);
+
+  // =============================
+  // CARREGAR KML
+  // =============================
   var zonaAzulLayer = omnivore.kml('ZonaAzul.kml')
     .on('ready', function() {
       map.fitBounds(zonaAzulLayer.getBounds());
