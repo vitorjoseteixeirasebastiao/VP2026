@@ -1,6 +1,6 @@
 // ===== Firebase =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
@@ -59,24 +59,7 @@ document.getElementById("btnCentralizar").onclick = () => {
   }
 };
 
-// ===== Salvar marcador =====
-async function salvarMarcador(lat, lng, endereco) {
-  await addDoc(collection(db, colecao), {
-    latitude: lat,
-    longitude: lng,
-    endereco,
-    criadoEm: serverTimestamp()
-  });
-}
-
-// ===== Endereço + Waze =====
-async function obterEndereco(lat, lng) {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return data.display_name || "Endereço não encontrado";
-}
-
+// ===== Popup =====
 function popupConteudo(endereco, lat, lng) {
   return `
     <b>${endereco}</b><br><br>
@@ -86,21 +69,7 @@ function popupConteudo(endereco, lat, lng) {
   `;
 }
 
-// ===== Clique no mapa (confirmar) =====
-map.on("click", async (e) => {
-  if (!confirm("Deseja adicionar um marcador aqui?")) return;
-
-  const { lat, lng } = e.latlng;
-  const endereco = await obterEndereco(lat, lng);
-
-  L.marker([lat, lng])
-    .addTo(map)
-    .bindPopup(popupConteudo(endereco, lat, lng));
-
-  salvarMarcador(lat, lng, endereco);
-});
-
-// ===== Carregar marcadores =====
+// ===== Carregar marcadores (somente leitura) =====
 async function carregarMarcadores() {
   const snap = await getDocs(collection(db, colecao));
   snap.forEach(doc => {
