@@ -8,6 +8,10 @@
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
+<!-- MarkerCluster -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
+
 <style>
 html, body {
   margin: 0;
@@ -70,8 +74,8 @@ html, body {
   background: #f0f0f0;
 }
 </style>
-
 </head>
+
 <body>
 
 <div class="top-bar">
@@ -86,7 +90,10 @@ html, body {
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- KML plugin -->
+<!-- Cluster -->
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<!-- KML -->
 <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
 
 <script type="module">
@@ -96,7 +103,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "SUA_KEY",
+  apiKey: "AIzaSyByYEISjGfRIh7Xxx5j7rtJ7Fm_nmMTgRk",
   authDomain: "vpm2026-8167b.firebaseapp.com",
   projectId: "vpm2026-8167b",
   storageBucket: "vpm2026-8167b.firebasestorage.app",
@@ -108,12 +115,17 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colecao = "marcadores";
 
-// ===== Mapa =====
-const map = L.map("map").setView([0, 0], 15);
+// ===== MAPA COM CANVAS =====
+const map = L.map("map", {
+  renderer: L.canvas()
+}).setView([0, 0], 15);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
+
+// ===== Cluster =====
+const cluster = L.markerClusterGroup();
 
 // ===== Ícone usuário =====
 const iconeUsuario = L.divIcon({
@@ -152,7 +164,7 @@ document.getElementById("btnCentralizar").onclick = () => {
   }
 };
 
-// ===== Popup =====
+// ===== Popup padrão =====
 function popupConteudo(endereco, lat, lng) {
   return `
     <b>${endereco}</b><br><br>
@@ -162,15 +174,20 @@ function popupConteudo(endereco, lat, lng) {
   `;
 }
 
-// ===== Carregar marcadores Firebase =====
+// ===== Carregar marcadores Firebase com CLUSTER =====
 async function carregarMarcadores() {
   const snap = await getDocs(collection(db, colecao));
+
   snap.forEach(doc => {
     const d = doc.data();
-    L.marker([d.latitude, d.longitude])
-      .addTo(map)
+
+    const marker = L.marker([d.latitude, d.longitude])
       .bindPopup(popupConteudo(d.endereco, d.latitude, d.longitude));
+
+    cluster.addLayer(marker);
   });
+
+  map.addLayer(cluster);
 }
 
 carregarMarcadores();
@@ -204,13 +221,35 @@ btnBuscar.onclick = async () => {
   });
 };
 
-// ===== KML Zona Azul =====
+// ===== KML Zona Azul com popup Waze =====
 const camadaZonaAzul = omnivore.kml("ZonaAzul.kml")
   .on("ready", function () {
-    console.log("ZonaAzul carregado");
-  })
-  .on("error", function (err) {
-    console.error("Erro ao carregar ZonaAzul:", err);
+
+    camadaZonaAzul.eachLayer(function (layer) {
+
+      let lat, lng;
+
+      if (layer.getLatLng) {
+        const latlng = layer.getLatLng();
+        lat = latlng.lat;
+        lng = latlng.lng;
+      } else if (layer.getBounds) {
+        const center = layer.getBounds().getCenter();
+        lat = center.lat;
+        lng = center.lng;
+      }
+
+      if (lat && lng) {
+        layer.bindPopup(`
+          <b>Zona Azul</b><br><br>
+          <a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">
+            Abrir no Waze
+          </a>
+        `);
+      }
+
+    });
+
   })
   .addTo(map);
 
