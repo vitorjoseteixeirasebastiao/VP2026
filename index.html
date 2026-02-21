@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa</title>
+<title>Teste</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 
 <style>
 html, body { margin:0; padding:0; height:100%; }
@@ -19,54 +17,13 @@ html, body { margin:0; padding:0; height:100%; }
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
-<script type="module">
+<script>
+var map = L.map('map').setView([-23.5505, -46.6333], 13);
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "SUA_API",
-  authDomain: "SEU_AUTH",
-  projectId: "SEU_PROJECT",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const map = L.map("map", {
-  preferCanvas: true,
-  renderer: L.canvas()
-}).setView([-23.5505, -46.6333], 15);
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap"
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
 }).addTo(map);
-
-const cluster = L.markerClusterGroup({
-  animate: false,
-  showCoverageOnHover: false
-});
-
-async function carregar() {
-  const snap = await getDocs(collection(db, "marcadores"));
-
-  snap.forEach(doc => {
-    const d = doc.data();
-
-    const m = L.circleMarker([d.latitude, d.longitude], {
-      radius: 6
-    }).bindPopup(d.endereco);
-
-    cluster.addLayer(m);
-  });
-
-  map.addLayer(cluster);
-}
-
-carregar();
-
 </script>
 
 </body>
