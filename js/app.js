@@ -15,52 +15,28 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const colecao = "marcadores";
 
-// ===== Mapa =====
-const map = L.map("map").setView([0, 0], 15);
+// ===== MAPA CANVAS =====
+const map = L.map("map", {
+  renderer: L.canvas(),
+  preferCanvas: true
+}).setView([0,0], 15);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap"
+  attribution:"© OpenStreetMap"
 }).addTo(map);
 
-// ===== Ícone usuário =====
-const iconeUsuario = L.divIcon({
-  className: "",
-  html: `<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;"></div>`,
-  iconSize: [16,16],
-  iconAnchor: [8,8]
+// ===== Cluster otimizado =====
+const cluster = L.markerClusterGroup({
+  showCoverageOnHover:false,
+  animate:false,
+  spiderfyOnMaxZoom:true,
+  disableClusteringAtZoom:18
 });
 
-const marcadorUsuario = L.marker([0,0], { icon: iconeUsuario }).addTo(map);
+let marcadoresCarregados = false;
 
-let posicaoAtual = null;
-let primeira = true;
-
-// ===== GPS =====
-navigator.geolocation.watchPosition(pos => {
-  posicaoAtual = {
-    lat: pos.coords.latitude,
-    lng: pos.coords.longitude
-  };
-
-  marcadorUsuario.setLatLng([posicaoAtual.lat, posicaoAtual.lng]);
-
-  if (primeira) {
-    map.setView([posicaoAtual.lat, posicaoAtual.lng], 18);
-    primeira = false;
-  }
-}, err => {
-  console.error(err);
-}, { enableHighAccuracy: true });
-
-// ===== Centralizar =====
-document.getElementById("btnCentralizar").onclick = () => {
-  if (posicaoAtual) {
-    map.setView([posicaoAtual.lat, posicaoAtual.lng], 18);
-  }
-};
-
-// ===== Popup =====
-function popupConteudo(endereco, lat, lng) {
+// ===== Popup padrão =====
+function popupConteudo(endereco, lat, lng){
   return `
     <b>${endereco}</b><br><br>
     <a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">
@@ -69,44 +45,135 @@ function popupConteudo(endereco, lat, lng) {
   `;
 }
 
-// ===== Carregar marcadores (somente leitura) =====
-async function carregarMarcadores() {
+// ===== Carregar marcadores somente após zoom =====
+async function carregarMarcadores(){
   const snap = await getDocs(collection(db, colecao));
-  snap.forEach(doc => {
+
+  snap.forEach(doc=>{
     const d = doc.data();
-    L.marker([d.latitude, d.longitude])
-      .addTo(map)
-      .bindPopup(popupConteudo(d.endereco, d.latitude, d.longitude));
+
+    const marker = L.circleMarker([d.latitude, d.longitude], {
+      radius:6
+    }).bindPopup(popupConteudo(d.endereco, d.latitude, d.longitude));
+
+    cluster.addLayer(marker);
   });
+
+  map.addLayer(cluster);
 }
 
-carregarMarcadores();
+// ===== Controle de zoom =====
+map.on("zoomend", ()=>{
+  const zoom = map.getZoom();
 
-// ===== Busca (2 sugestões) =====
-const searchInput = document.getElementById("searchInput");
-const btnBuscar = document.getElementById("btnBuscar");
-const suggestions = document.getElementById("suggestions");
+  if(zoom >= 15 && !marcadoresCarregados){
+    carregarMarcadores();
+    marcadoresCarregados = true;
+  }
 
-btnBuscar.onclick = async () => {
-  const q = searchInput.value.trim();
-  if (!q) return;
+  if(zoom < 14){
+    if(map.hasLayer(camadaZonaAzul)){
+      map.removeLayer(camadaZonaAzul);
+    }
+  } else {
+    if(!map.hasLayer(camadaZonaAzul)){
+      map.addLayer(camadaZonaAzul);
+    }
+  }
+});
 
-  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=2&q=${encodeURIComponent(q)}`;
-  const res = await fetch(url);
-  const data = await res.json();
+// ===== GPS =====
+const iconeUsuario = L.divIcon({
+  className:"",
+  html:`<div style="width:16px;height:16px;background:#007bff;border:3px solid white;border-radius:50%;"></div>`,
+  iconSize:[16,16],
+  iconAnchor:[8,8]
+});
 
-  suggestions.innerHTML = "";
+const marcadorUsuario = L.marker([0,0],{icon:iconeUsuario}).addTo(map);
 
-  data.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "suggestion";
-    div.textContent = item.display_name;
+let posicaoAtual=null;
+let primeira=true;
 
-    div.onclick = () => {
-      map.setView([item.lat, item.lon], 18);
-      suggestions.innerHTML = "";
+navigator.geolocation.watchPosition(pos=>{
+  posicaoAtual={
+    lat:pos.coords.latitude,
+    lng:pos.coords.longitude
+  };
+
+  marcadorUsuario.setLatLng([posicaoAtual.lat,posicaoAtual.lng]);
+
+  if(primeira){
+    map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+    primeira=false;
+  }
+
+},{enableHighAccuracy:true});
+
+// ===== Centralizar =====
+document.getElementById("btnCentralizar").onclick=()=>{
+  if(posicaoAtual){
+    map.setView([posicaoAtual.lat,posicaoAtual.lng],18);
+  }
+};
+
+// ===== Busca =====
+const searchInput=document.getElementById("searchInput");
+const btnBuscar=document.getElementById("btnBuscar");
+const suggestions=document.getElementById("suggestions");
+
+btnBuscar.onclick=async()=>{
+  const q=searchInput.value.trim();
+  if(!q)return;
+
+  const url=`https://nominatim.openstreetmap.org/search?format=json&limit=2&q=${encodeURIComponent(q)}`;
+  const res=await fetch(url);
+  const data=await res.json();
+
+  suggestions.innerHTML="";
+
+  data.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="suggestion";
+    div.textContent=item.display_name;
+
+    div.onclick=()=>{
+      map.setView([item.lat,item.lon],18);
+      suggestions.innerHTML="";
     };
 
     suggestions.appendChild(div);
   });
 };
+
+// ===== KML Zona Azul =====
+const camadaZonaAzul = omnivore.kml("ZonaAzul.kml")
+.on("ready",function(){
+
+  camadaZonaAzul.eachLayer(function(layer){
+
+    let lat,lng;
+
+    if(layer.getLatLng){
+      const latlng=layer.getLatLng();
+      lat=latlng.lat;
+      lng=latlng.lng;
+    }
+    else if(layer.getBounds){
+      const center=layer.getBounds().getCenter();
+      lat=center.lat;
+      lng=center.lng;
+    }
+
+    if(lat && lng){
+      layer.bindPopup(`
+        <b>Zona Azul</b><br><br>
+        <a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank">
+          Abrir no Waze
+        </a>
+      `);
+    }
+
+  });
+
+});
